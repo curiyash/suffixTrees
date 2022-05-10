@@ -8,9 +8,9 @@ typedef struct node{
     // Let's start with 26 first
     struct node *children[MAX_CHAR];
 
-    // Every node has a start and end index from its parent
-    int start;
-    int end;
+    // Every node has a start and end index of edge from its parent
+    int *start;
+    int *end;
 
     // Every internal node has a suffix link
     struct node *suffixLink;

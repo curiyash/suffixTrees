@@ -22,6 +22,8 @@ void initSuffixTree(suffixTree *st){
     st->root = NULL;
     st->remaining = 0;
     st->end = -1;
+    st->root->start = -1;
+    st->root->end = -1;
     st->ap.activeNode = NULL;
     st->ap.activeEdge = 0;
     st->ap.activeLength = 0;
@@ -54,15 +56,19 @@ void buildSuffixTree(suffixTree *st){
 
     // Start the loop for each phase
     for (int i=0; i<strlen(str); i++){
-        beginPhase(st, i, c);
+        beginPhase(st, i);
     }
 }
 
-void beginPhase(suffixTree *st, int i, char c){
+void beginPhase(suffixTree *st, int i){
     // In each phase, 'remaining' and 'end' should be incremented
     st->remaining += 1;
     // Rule 1 extension
     st->end += 1;
+    char c = st->str[i];
+
+    // Handle suffixLinks
+    node *lastCreatedInternalNode = NULL;
 
     while (remaining>0){
         // Check active length
@@ -70,15 +76,17 @@ void beginPhase(suffixTree *st, int i, char c){
             // Is there a path from activeNode with i?
 
             // Create a path if not
-            if (st->ap.activeNode->children[i]==NULL){
+            if (st->ap.activeNode->children[c]==NULL){
                 node *nn = (node *) malloc(sizeof(node));
                 // How to represent the leaf node?
-                st->ap.activeNode->children[i] = nn;
+                *(nn->start) = i;
+                nn->end = &(st->end);
+                st->ap.activeNode->children[c] = nn;
                 remaining--;
             }
             else {
                 // Show stopper
-                st->ap.activeEdge = c;
+                st->ap.activeEdge = st->root->children[c]->start;
                 st->ap.activeLength++;
                 break;
             }
@@ -88,13 +96,17 @@ void beginPhase(suffixTree *st, int i, char c){
             int moveBy = st->ap.activeLength;
             int moveTowards = st->ap.activeEdge;
             node *moveFrom = st->ap.activeNode;
-            int movement = moveTowards+moveBy-1;
+            int movement = moveTowards+moveBy;
             // Is that character current character?
 
             if (st->str[movement]==c){
                 // Rule 3 extension
                 // Show stopper
                 // End phase;
+                if (lastCreatedInternalNode){
+                    lastCreatedInternalNode->suffixLink = st->ap.activeNode;
+                }
+                // Need to create walkdown function
                 st->ap.activeLength++;
                 break;
             } else{
@@ -104,6 +116,32 @@ void beginPhase(suffixTree *st, int i, char c){
                 // Then, we have branches from this internal node
                 // A branch exists for activeLength
                 // A new branch is created for the current character
+                node *new = (node *) malloc(sizeof(node));
+                *(new->start) = activeEdge;
+                *(new->end) = activeLength;
+                free(st->ap.activeNode->children[activeEdge]);
+                st->ap.activeNode->children[activeEdge] = new;
+
+                node *nn = (node *) malloc(sizeof(node));
+                // How to represent the leaf node?
+                *(nn->start) = activeLength;
+                nn->end = &(st->end);
+                // Possibly moveBy instead of activeLength
+                char *next = st->str[moveBy];
+                new->children[next] = nn;
+
+                node *n = (node *) malloc(sizeof(node));
+                *(n->start) = i;
+                n->end = &(st->end);
+                new->children[c] = n;
+
+                // Every internal node has a suffix link
+                // need to think about suffix links
+                new->suffixLink = prevLink;
+
+                remaining--;
+                st->ap.activeLength--;
+                st->ap.activeEdge++;
             }
         }
     }
