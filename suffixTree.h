@@ -1,7 +1,7 @@
 // The maximum number of children a node could have
 // 256 ASCII characters
 // Could we do something better instead?
-#define MAX_CHAR 26
+#define MAX_CHAR 256
 
 typedef struct node{
     // Has an array representing possibly 256 ASCII characters
@@ -38,3 +38,4 @@ typedef struct suffixTree{
 void initSuffixTree(suffixTree *st);
 void preprocessString(suffixTree *st, char *str);
 void buildSuffixTree(suffixTree *st);
+void Display(node *t);
