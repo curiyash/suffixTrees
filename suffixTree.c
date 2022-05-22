@@ -74,19 +74,20 @@ void buildSuffixTree(suffixTree *st){
     }
 }
 
-void walkDown(suffixTree *st, char c){
+void walkDown(suffixTree *st, int i){
     // Travel until active
     node *n = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
     int start = *(n->start);
     int end = *(n->end);
     printf("walkDown start: %d\n", start);
     printf("walkDown end: %d\n", end);
-    printf("Here in function %c\n", c);
+    if (st->str[i]=='z')
+        printf("Here in function %c %d\n", st->str[i], *(st->root->children[st->str[0]]->children[st->str[i]]->start));
 
-    if ((end-start)<=st->ap.activeLength){
+    if ((end-start)<st->ap.activeLength){
         st->ap.activeNode = n;
-        st->ap.activeLength = st->ap.activeLength - (end-start)+1;
-        st->ap.activeEdge = *(st->ap.activeNode->children[c]->start);
+        st->ap.activeLength = st->ap.activeLength - (end-start);
+        st->ap.activeEdge = *(st->ap.activeNode->children[st->str[i]]->start);
         printf("Here\n");
     } else{
         printf("Here in else\n");
@@ -157,7 +158,7 @@ void beginPhase(suffixTree *st, int i){
                     lastCreatedInternalNode->suffixLink = st->ap.activeNode;
                 }
                 // Need to create walkdown function
-                walkDown(st, c);
+                walkDown(st, i);
                 break;
             } else{
                 printf("2b\n");
@@ -168,24 +169,31 @@ void beginPhase(suffixTree *st, int i){
                 // A branch exists for activeLength
                 // A new branch is created for the current character
                 // node *new = (node *) malloc(sizeof(node));
-                node *new = newNode(st->ap.activeEdge, NULL);
+                node *old = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
+                int oldStart = *(old->start);
+                printf("42\n");
+                old->start = old->start+st->ap.activeLength;
+                node *new = newNode(oldStart, NULL);
                 new->end = (int *) malloc(sizeof(int));
-                *(new->end) = st->ap.activeLength;
+                *(new->end) = oldStart+st->ap.activeLength-1;
                 printf("new\nstart: %d, end; %d\n", *(new->start), *(new->end));
-                // *(new->start) = st->ap.activeEdge;
-                // *(new->end) = st->ap.activeLength;
-                free(st->ap.activeNode->children[st->str[st->ap.activeEdge]]);
-                st->ap.activeNode->children[st->str[st->ap.activeEdge]] = new;
+                *(new->start) = st->ap.activeEdge;
+                *(new->end) = st->ap.activeLength;
 
-                node *nn = newNode(st->ap.activeLength, &(st->end));
-                // How to represent the leaf node?
-                // Possibly moveBy instead of activeLength
-                printf("nn\nstart: %d, end; %d\n", *(nn->start), *(nn->end));
-                char next = st->str[moveBy];
-                new->children[next] = nn;
+                // node *nn = newNode(*(new->end)+1, &(st->end));
+                // // How to represent the leaf node?
+                // // Possibly moveBy instead of activeLength
+                // printf("nn\nstart: %d, end; %d\n", *(nn->start), *(nn->end));
+                // char next = st->str[moveBy];
+                // new->children[next] = nn;
+
 
                 node *n = newNode(i, &(st->end));
+                new->children[st->str[*(new->start)+st->ap.activeLength]] = old;
                 new->children[c] = n;
+                printf("char: %c\n", st->str[oldStart]);
+                // free(st->ap.activeNode->children[st->str[oldStart]]);
+                st->ap.activeNode->children[st->str[oldStart]] = new;
 
                 // Every internal node has a suffix link
                 // need to think about suffix links

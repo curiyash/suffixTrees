@@ -5,7 +5,7 @@
 int main(){
     suffixTree st;
     initSuffixTree(&st);
-    char *str = "xyzxyaxyz";
+    char *str = "xyzxy";
     preprocessString(&st, str);
     printf("%s\n", st.str);
     buildSuffixTree(&st);
