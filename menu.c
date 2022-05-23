@@ -20,7 +20,7 @@ void check(node *root, char *str){
 int main(){
     suffixTree st;
     initSuffixTree(&st);
-    char *str = "GATAGA";
+    char *str = "MISSISS";
     // AAAGGAGATCAGATCAGATCAGATCTATCTATCTATCTATCTATCAGAAAAGAGTAAATAGTTAAAGAGTAAGATATTGAATTAATGGAAAATATTGTTGGGGAAAGGAGGGATAGAAGG";
     preprocessString(&st, str);
     printf("%s\n", st.str);
