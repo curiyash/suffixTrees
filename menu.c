@@ -2,18 +2,38 @@
 #include <stdlib.h>
 #include "suffixTree.h"
 
+void check(node *root, char *str){
+    for (int i=0; i<256; i++){
+        if (root->children[i]){
+            printf("parent: %d %d\n", *(root->start), *(root->end));
+            // for (int j=*(root->start); j<=*(root->end); j++){
+            //     printf("%c", str[j]);
+            // }
+            // printf("\n");
+            printf("%c\n", i);
+            printf("%d %d\n", *(root->children[i]->start), *(root->children[i]->end));
+            check(root->children[i], str);
+        }
+    }
+}
+
 int main(){
     suffixTree st;
     initSuffixTree(&st);
-    char *str = "xyzxy";
+    char *str = "GATAGA";
+    // AAAGGAGATCAGATCAGATCAGATCTATCTATCTATCTATCTATCAGAAAAGAGTAAATAGTTAAAGAGTAAGATATTGAATTAATGGAAAATATTGTTGGGGAAAGGAGGGATAGAAGG";
     preprocessString(&st, str);
     printf("%s\n", st.str);
     buildSuffixTree(&st);
-    Display(st.root);
+    printf("---------------------------------------------------------\n");
+    Display(st.root, st.str);
     // for (int i=0; i<256; i++){
     //     if (st.root->children[i]){
     //         printf("%c\n", i);
     //         printf("%d %d\n", *(st.root->children[i]->start), *(st.root->children[i]->end));
     //     }
     // }
+    // checkForSubString(st, "ssi");
+
+    check(st.root, st.str);
 }

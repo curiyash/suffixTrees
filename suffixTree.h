@@ -14,6 +14,9 @@ typedef struct node{
 
     // Every internal node has a suffix link
     struct node *suffixLink;
+
+    // suffixIndex for leaf
+    int suffixIndex;
 } node;
 
 typedef struct activePoint{
@@ -38,4 +41,5 @@ typedef struct suffixTree{
 void initSuffixTree(suffixTree *st);
 void preprocessString(suffixTree *st, char *str);
 void buildSuffixTree(suffixTree *st);
-void Display(node *t);
+void Display(node *t, char *str);
+int checkForSubString(suffixTree st, char *pat);
