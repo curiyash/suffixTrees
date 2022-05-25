@@ -125,32 +125,25 @@ void buildSuffixTree(suffixTree *st){
     // Start the loop for each phase
     for (int i=0; i<strlen(str); i++){
         beginPhase(st, i);
-        if (i>=6)
-            printf("---------------------------------------------------------------\n");
     }
 
     // Set suffix indices
     setSuffixIndexByDFS(st->root, 0,st->str);
 }
 
+int diff(node *n){
+    return *(n->end)-*(n->start);
+}
+
 void walkDown(suffixTree *st, int i){
     // Travel until active
     node *n = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
-    int start = *(n->start);
-    int end = *(n->end);
-    // printf("walkDown start: %d\n", start);
-    // printf("walkDown end: %d\n", end);
-    // if (st->str[i]=='z')
-        // printf("Here in function %c %d\n", st->str[i], *(st->root->children[st->str[0]]->children[st->str[i]]->start));
 
-    if ((end-start)+1<st->ap.activeLength){
+    if (diff(n)<st->ap.activeLength){
         st->ap.activeNode = n;
-        st->ap.activeLength = st->ap.activeLength - (end-start);
-        printf("%p\n", st->ap.activeNode->children[st->str[i]]->start);
+        st->ap.activeLength = st->ap.activeLength - diff(n);
         st->ap.activeEdge = *(st->ap.activeNode->children[st->str[i]]->start);
-        // printf("Here\n");
     } else{
-        // printf("Here in else\n");
         st->ap.activeLength++;
     }
 }
@@ -165,16 +158,24 @@ void printActivePoints(suffixTree st, activePoint ap){
     printf("activeLength: %d\n", ap.activeLength);
 }
 
-int isLeaf(node *t){
-    if (t){
-        int children = 0;
-        for (int i=0; i<MAX_CHAR; i++){
-            if (t->children[i]){
-                return 0;
-            }
-        }
+char isEndOfPath(suffixTree *st, int i){
+    node *n = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
+    char *input = st->str;
+    if (diff(n)>=st->ap.activeLength){
+        return input[*(st->ap.activeNode->children[input[st->ap.activeEdge]]->start)+st->ap.activeLength];
     }
-    return 1;
+    if (diff(n)+1==st->ap.activeLength){
+        if(n->children[input[i]]){
+            return input[i];
+        }
+    } else{
+        st->ap.activeNode = n;
+        st->ap.activeLength = st->ap.activeLength-diff(n)-1;
+        st->ap.activeEdge = st->ap.activeEdge + diff(n) + 1;
+        return isEndOfPath(st, i);
+    }
+
+    return 0;
 }
 
 void beginPhase(suffixTree *st, int i){
@@ -185,7 +186,6 @@ void beginPhase(suffixTree *st, int i){
     // printf("End: %d\n", st->end);
     char c = st->str[i];
     // printf("Char: %c\n", c);
-
     // Handle suffixLinks
     node *lastCreatedInternalNode = NULL;
 
@@ -213,110 +213,65 @@ void beginPhase(suffixTree *st, int i){
                 break;
             }
         } else {
-            printf("2\n");
-            // Move activeLengths along the direction given by activeEdge
-            // from activeNode
-            int moveBy = st->ap.activeLength;
-            int moveTowards = st->ap.activeEdge;
-            node *moveFrom = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
-            int movement = moveTowards+moveBy;
-            // Is that character current character?
-            printf("movement: %d, edgeLength: %d\n", movement, edgeLength(moveFrom)-1);
-            if (movement>=*(moveFrom->end)-1){
-                // End of path
-                printf("End of path\n");
-            };
-
-            if (st->str[movement]==c){
+            printf("Here\n");
+            char ch = isEndOfPath(st, i);
+            if(ch!=0){
                 printf("2a\n");
-                // Rule 3 extension
-                // Show stopper
-                // End phase
-                if (lastCreatedInternalNode){
-                    // printf("2x\n");
-                    lastCreatedInternalNode->suffixLink = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
-                }
-                // Need to create walkdown function
-                walkDown(st, i);
-                break;
-            } else{
-                if (!isLeaf(st->ap.activeNode->children[st->str[st->ap.activeEdge]])){
-                    printf("End of Path\n");
-                    // Just create a leaf node and move to the new suffix link
-                    node *old = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
-                    old->children[st->str[i]] = newNode(i, &(st->end));
-
+                if (ch==st->str[i]){
+                    printf("eq\n");
                     if (lastCreatedInternalNode){
-                        lastCreatedInternalNode->suffixLink = old;
+                        lastCreatedInternalNode->suffixLink = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
                     }
-                    lastCreatedInternalNode = old;
-                    if (st->ap.activeNode!=st->root){
-                        st->ap.activeNode = st->ap.activeNode->suffixLink;
-                    }
-                    else{
-                        st->ap.activeEdge = st->ap.activeEdge+1;
-                        st->ap.activeLength--;
-                    }
-                    st->remaining--;
+                    walkDown(st, i);
+                    break;
                 } else{
-                    printf("2b\n");
-                    // New internal node needs to be created
-                    // So there is an edge from activeNode to the new
-                    // internal node with [start, end] = [activeEdge, activeLength-1]
-                    // Then, we have branches from this internal node
-                    // A branch exists for activeLength
-                    // A new branch is created for the current character
-                    // node *new = (node *) malloc(sizeof(node));
-                    printf("activeEdge: %d\n", st->ap.activeEdge);
-                    node *old = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
-                    int oldStart = *(old->start);
-                    // printf("42\n");
-                    // printf("-----\n");
-                    // printActivePoints(*st, st->ap);
-                    // printf("-----\n");
-                    *(old->start) = *(old->start)+st->ap.activeLength;
-                    // printf("old\nstart: %d, end: %d\n", *(old->start), *(old->end));
+                    node *n = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
+                    int oldStart = *(n->start);
+                    *(n->start) = oldStart + st->ap.activeLength;
+
                     node *new = newNode(oldStart, NULL);
                     new->end = (int *) malloc(sizeof(int));
                     *(new->end) = oldStart+st->ap.activeLength-1;
-                    printf("new\nstart: %d, end; %d\n", *(new->start), *(new->end));
-                    // *(new->start) = st->ap.activeEdge;
-                    // *(new->end) = st->ap.activeLength;
-                    // printf("new\nstart: %d, end; %d\n", *(new->start), *(new->end));
+                    printf("neq\n");
 
-                    // node *nn = newNode(*(new->end)+1, &(st->end));
-                    // // How to represent the leaf node?
-                    // // Possibly moveBy instead of activeLength
-                    // printf("nn\nstart: %d, end; %d\n", *(nn->start), *(nn->end));
-                    // char next = st->str[moveBy];
-                    // new->children[next] = nn;
+                    node *newLeaf = newNode(i, &(st->end));
 
+                    new->children[st->str[*(new->start)+st->ap.activeLength]] = n;
+                    new->children[st->str[i]] = newLeaf;
+                    new->suffixIndex = -1;
+                    st->ap.activeNode->children[st->str[*(new->start)]] = new;
 
-                    node *n = newNode(i, &(st->end));
-                    new->children[st->str[*(new->start)+st->ap.activeLength]] = old;
-                    new->children[c] = n;
-                    printf("n\ni: %d, start: %d, end; %d\n", i, *(n->start), *(n->end));
-                    // printf("char: %c\n", st->str[oldStart]);
-                    // free(st->ap.activeNode->children[st->str[oldStart]]);
-                    st->ap.activeNode->children[st->str[oldStart]] = new;
-
-                    // Every internal node has a suffix link
-                    // need to think about suffix links
                     if (lastCreatedInternalNode){
-                        // printf("New suffix link\n");
                         lastCreatedInternalNode->suffixLink = new;
                     }
                     lastCreatedInternalNode = new;
                     new->suffixLink = st->root;
 
-                    st->remaining--;
                     if (st->ap.activeNode!=st->root){
                         st->ap.activeNode = st->ap.activeNode->suffixLink;
                     } else{
-                        st->ap.activeEdge++;
+                        st->ap.activeEdge = st->ap.activeEdge+1;
                         st->ap.activeLength--;
                     }
+                    st->remaining--;
                 }
+            } else{
+                printf("2b\n");
+                // End of Path
+                printf("End of path\n");
+                node *n = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
+                n->children[st->str[i]] = newNode(i, &(st->end));
+                if (lastCreatedInternalNode){
+                    lastCreatedInternalNode->suffixLink = n;
+                }
+                lastCreatedInternalNode = n;
+                if (st->ap.activeNode != st->root){
+                    st->ap.activeNode = st->ap.activeNode->suffixLink;
+                } else{
+                    st->ap.activeEdge = st->ap.activeEdge + 1;
+                    st->ap.activeLength--;
+                }
+                st->remaining--;
             }
         }
         printf("-----\n");
@@ -385,124 +340,38 @@ void Display(node *t, char *str){
 //     return 1;
 // }
 
-int match(char *pat, int posStart, int start, int end, char *str, int *index){
-    // 1 = full match
-    // 0 = partial match
-    // -1 = no match
-    int pos = posStart;
-    int match = 0;
-    for (int j=start; j<=end && pos<strlen(pat); j++){
-        printf("Is %c==%c?\n", pat[pos], str[j]);
-        if (pat[pos]!=str[j]){
-            return -1;
+int isLeaf(node *t){
+    if (t){
+        if (*(t->end)==-1){
+            return 0;
+        }
+        if (t->suffixIndex!=-1){
+            return 1;
         } else{
-            match++;
-            *(index) = *(index)+1;
-            pos++;
+            return 0;
         }
-    }
-    printf("matches: %d, len: %ld\n", match, strlen(pat));
-    if (match!=strlen(pat)-posStart){
-        return 0;
-    }
-    return 1;
-}
-
-int checkForSubString(suffixTree st, char *pat){
-    node *curr = st.root;
-    printf("Here\n");
-    int index = 0;
-    int update = 0;
-    int len = strlen(pat);
-    int i = 0;
-    int finalStatus = -1;
-    while (i<MAX_CHAR && index<len){
-        if (i==0){
-            printf("Yes\n");
-            printf("%d %d %d\n", *(curr->start), *(curr->end), index);
-        }
-        if (curr->children[i]){
-            // If pat doesn't match child label
-            printf("Checking: %d %d\n", *(curr->children[i]->start), *(curr->children[i]->end));
-            int status = match(pat, index, *(curr->children[i]->start), *(curr->children[i]->end), st.str, &update);
-            printf("status: %d %d\n", status, update);
-            finalStatus = status;
-            if (status==-1) {
-                i++;
-                continue;
-            };
-            // If full match
-            if (status==1){
-                printf("Is a substring\n");
-                return 1;
-            }
-            // If partial match
-            if (status==0){
-                curr = curr->children[i];
-                i = 0;
-                index = update;
-                continue;
-            }
-        }
-        i++;
-    }
-    if (finalStatus==1){
-        printf("Is a substring\n");
-        return 1;
     } else{
-        printf("Not a substring\n");
-        return 0;
+        return 1;
     }
 }
 
-int traverseEdge(char *str, int idx, int start, int end, char *text)
-{
-    int k = 0;
-    //Traverse the edge with character by character matching
-    for(k=start; k<=end && str[idx] != '\0'; k++, idx++)
-    {
-        if(text[k] != str[idx])
-            return -1;  // mo match
+void DFSPath(node *n, char *str, char *text){
+    if (*(n->end)!=-1){
+        for (int i=*(n->start); i<=*(n->end); i++){
+            str+=text[i];
+        }
+        if (isLeaf(n)){
+            printf("%s\n", str);
+            return;
+        }
     }
-    if(str[idx] == '\0')
-        return 1;  // match
-    return 0;  // more characters yet to match
+    for (int i=0; i<MAX_CHAR; i++){
+        if (n->children[i]){
+            DFSPath(n->children[i], str, text);
+        }
+    }
 }
- 
-int doTraversal(node *n, char* str, int idx, char *text)
-{
-    if(n == NULL)
-    {
-        return -1; // no match
-    }
-    int res = -1;
-    //If node n is not root node, then traverse edge
-    //from node n's parent to node n.
-    if(*(n->start) != -1)
-    {
-        res = traverseEdge(str, idx, *(n->start), *(n->end), text);
-        if(res != 0)
-            return res;  // match (res = 1) or no match (res = -1)
-    }
-    //Get the character index to search
-    idx = idx + edgeLength(n);
-    //If there is an edge from node n going out
-    //with current character str[idx], traverse that edge
-    if(n->children[str[idx]] != NULL)
-        return doTraversal(n->children[str[idx]], str, idx, text);
-    else
-        return -1;  // no match
+
+void printRoot2Leaf(suffixTree *st){
+    DFSPath(st->root, "", st->str);
 }
- 
-// int checkForSubString(suffixTree st, char *pat)
-// {
-//     int res = doTraversal(st.root, pat, 0, st.str);
-//     if(res == 1){
-//         printf("Pattern <%s> is a Substring\n", pat);
-//         return 1;
-//     }
-//     else{
-//         printf("Pattern <%s> is NOT a Substring\n", pat);
-//         return 0;
-//     }
-// }

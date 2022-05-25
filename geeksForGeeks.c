@@ -27,7 +27,7 @@ struct SuffixTreeNode {
 
 typedef struct SuffixTreeNode Node;
 
-char text[100]; //Input string
+char text[1000]; //Input string
 Node *root = NULL; //Pointer to root node
 
 /*lastNewNode will point to newly created internal node,
@@ -487,24 +487,85 @@ int doTraversal(Node *n, char* str, int idx)
 		return -1; // no match
 }
 
-void checkForSubString(char* str)
-{
-	int res = doTraversal(root, str, 0);
-	if(res == 1)
-		printf("Pattern <%s> is a Substring\n", str);
-	else
-		printf("Pattern <%s> is NOT a Substring\n", str);
+int match(char *pat, int posStart, int start, int end, char *str, int *index){
+    // 1 = full match
+    // 0 = partial match
+    // -1 = no match
+    int pos = posStart;
+    int match = 0;
+    for (int j=start; j<=end && pos<strlen(pat); j++){
+        // printf("Is %c==%c?\n", pat[pos], str[j]);
+        if (pat[pos]!=str[j]){
+            return -1;
+        } else{
+            match++;
+            *(index) = *(index)+1;
+            pos++;
+        }
+    }
+    // printf("matches: %d, len: %ld\n", match, strlen(pat));
+    if (match!=strlen(pat)-posStart){
+        return 0;
+    }
+    return 1;
+}
+
+int checkForSubString(char *pat){
+    Node *curr = root;
+    // printf("Here\n");
+    int index = 0;
+    int update = 0;
+    int len = strlen(pat);
+    int i = 0;
+    int finalStatus = -1;
+    while (i<MAX_CHAR && index<len){
+        // if (i==0){
+        //     printf("Yes\n");
+        //     printf("%d %d %d\n", curr->start, *(curr->end), index);
+        // }
+        if (curr->children[i]){
+            // If pat doesn't match child label
+            // printf("Checking: %d %d\n", curr->children[i]->start, *(curr->children[i]->end));
+            int status = match(pat, index, curr->children[i]->start, *(curr->children[i]->end), text, &update);
+            // printf("status: %d %d\n", status, update);
+            finalStatus = status;
+            if (status==-1) {
+                i++;
+                continue;
+            };
+            // If full match
+            if (status==1){
+                printf("Is a substring\n");
+                return 1;
+            }
+            // If partial match
+            if (status==0){
+                curr = curr->children[i];
+                i = 0;
+                index = update;
+                continue;
+            }
+        }
+        i++;
+    }
+    if (finalStatus==1){
+        printf("Is a substring\n");
+        return 1;
+    } else{
+        printf("Not a substring\n");
+        return 0;
+    }
 }
 
 // driver program to test above functions
 int main(int argc, char *argv[])
 {
-	strcpy(text, "geeksforgeeks");
+	strcpy(text, "AAGGTAAGTTTAGAATATAAAAGGTGAGTTAAATAGAATAGGTTAAAATTAAAGGAGATCAGATCAGATCAGATCTATCTATCTATCTATCTATCAGAAAAGAGTAAATAGTTAAAGAGTAAGATATTGAATTAATGGAAAATATTGTTGGGGAAAGGAGGGATAGAAGG");
 	buildSuffixTree();
 
-	checkForSubString("geeks");
-	checkForSubString("a");
-	checkForSubString("eek");
+	checkForSubString("TAAAT");
+	// checkForSubString("a");
+	// checkForSubString("s");
 
 	//Free the dynamically allocated memory
 	freeSuffixTreeByPostOrder(root);

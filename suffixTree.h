@@ -17,6 +17,9 @@ typedef struct node{
 
     // suffixIndex for leaf
     int suffixIndex;
+
+    // for common substring
+    int candidate;
 } node;
 
 typedef struct activePoint{
@@ -43,3 +46,5 @@ void preprocessString(suffixTree *st, char *str);
 void buildSuffixTree(suffixTree *st);
 void Display(node *t, char *str);
 int checkForSubString(suffixTree st, char *pat);
+int isLeaf(node *n);
+void printRoot2Leaf(suffixTree *st);

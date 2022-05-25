@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "suffixTree.h"
+#include "utilities.h"
 
 void check(node *root, char *str){
     for (int i=0; i<256; i++){
@@ -20,8 +21,7 @@ void check(node *root, char *str){
 int main(){
     suffixTree st;
     initSuffixTree(&st);
-    char *str = "MISSISS";
-    // AAAGGAGATCAGATCAGATCAGATCTATCTATCTATCTATCTATCAGAAAAGAGTAAATAGTTAAAGAGTAAGATATTGAATTAATGGAAAATATTGTTGGGGAAAGGAGGGATAGAAGG";
+    char *str = "MISSISSIPPI#MISSISSIPPI";
     preprocessString(&st, str);
     printf("%s\n", st.str);
     buildSuffixTree(&st);
@@ -33,7 +33,12 @@ int main(){
     //         printf("%d %d\n", *(st.root->children[i]->start), *(st.root->children[i]->end));
     //     }
     // }
-    // checkForSubString(st, "ssi");
+    // checkForSubString(st, "GTTT");
+    // checkForSubString(st, "SSI");
+    // printf("count: %d\n", countOccurences(&st, "ISSI"));
+    // printf("longest repeated substring: %d\n", longestRepeatedSubstring(&st));
+    // printf("longest common substring: %d\n", longestCommonSubstring(&st));
+    printRoot2Leaf(&st);
 
-    check(st.root, st.str);
+    // check(st.root, st.str);
 }
