@@ -59,21 +59,21 @@ void setSuffixIndexByDFS(node *n, int labelHeight, char *str)
             //Current node is not a leaf as it has outgoing
             //edges from it.
             leaf = 0;
-            setSuffixIndexByDFS(n->children[i],
-                  labelHeight + edgeLength(n->children[i]), str);
+            setSuffixIndexByDFS(n->children[i],labelHeight + edgeLength(n->children[i]), str);
         }
     }
     if (leaf == 1)
     {
-        for(i = *(n->start); i<= *(n->end); i++)
-        {
-            if(str[i] == '#') //Trim unwanted characters
-            {
-                n->end = (int*) malloc(sizeof(int));
-                *(n->end) = i;
-                break;
-            }
-        }
+        // for(i = *(n->start); i<= *(n->end); i++)
+        // {
+        //     // Trim unwanted characters
+        //     if(str[i] == '#')
+        //     {
+        //         n->end = (int*) malloc(sizeof(int));
+        //         *(n->end) = i;
+        //         break;
+        //     }
+        // }
         n->suffixIndex = strlen(str) - labelHeight;
         // printf(" %d\n", n->suffixIndex);
     }
@@ -355,23 +355,35 @@ int isLeaf(node *t){
     }
 }
 
-void DFSPath(node *n, char *str, char *text){
+void DFSPath(node *n, char *prevSuffix, char *text){
+    char *currSuffix = (char *) malloc(sizeof(char)*(edgeLength(n)));
+    // printf("str: %s\n", text);
+    // printf("start: %d, end: %d\n", *(n->start), *(n->end));
+    for (int i=*(n->start); i<=*(n->end); i++){
+        // printf("%c ", text[i]);
+        currSuffix[i-*(n->start)] = text[i];
+    }
+    // printf("\nprevSuffix: %s\n", prevSuffix);
+    // printf("currSuffix: %s\n", currSuffix);
+    char *newSuffix = (char *) malloc(sizeof(char)*(strlen(prevSuffix) + strlen(currSuffix)));
+    strcat(newSuffix, prevSuffix);
+    strcat(newSuffix, currSuffix);
     if (*(n->end)!=-1){
-        for (int i=*(n->start); i<=*(n->end); i++){
-            str+=text[i];
-        }
         if (isLeaf(n)){
-            printf("%s\n", str);
+            printf("%s\n", newSuffix);
             return;
         }
+    } else{
+        newSuffix = "";
     }
     for (int i=0; i<MAX_CHAR; i++){
         if (n->children[i]){
-            DFSPath(n->children[i], str, text);
+            DFSPath(n->children[i], newSuffix, text);
         }
     }
 }
 
 void printRoot2Leaf(suffixTree *st){
-    DFSPath(st->root, "", st->str);
+    char *str = (char *) malloc(sizeof(char)*(strlen(st->str)+1));
+    DFSPath(st->root, str, st->str);
 }

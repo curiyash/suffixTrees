@@ -21,7 +21,7 @@ void check(node *root, char *str){
 int main(){
     suffixTree st;
     initSuffixTree(&st);
-    char *str = "MISSISSIPPI#MISSISSIPPI";
+    char *str = "mississippi#messiah";
     preprocessString(&st, str);
     printf("%s\n", st.str);
     buildSuffixTree(&st);
@@ -35,10 +35,10 @@ int main(){
     // }
     // checkForSubString(st, "GTTT");
     // checkForSubString(st, "SSI");
-    // printf("count: %d\n", countOccurences(&st, "ISSI"));
+    printf("count: %d\n", countOccurences(&st, "s"));
     // printf("longest repeated substring: %d\n", longestRepeatedSubstring(&st));
-    // printf("longest common substring: %d\n", longestCommonSubstring(&st));
-    printRoot2Leaf(&st);
+    printf("longest common substring: %d\n", longestCommonSubstring(&st));
+    // printRoot2Leaf(&st);
 
     // check(st.root, st.str);
 }
