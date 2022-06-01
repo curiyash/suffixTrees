@@ -165,7 +165,7 @@ int isRoot(node *n){
     }
 }
 
-void DFS(node *n, int *len, int currPathLen){
+void DFS(node *n, int *len, int currPathLen, together *t){
     if (isLeaf(n)){
         return;
     }
@@ -174,13 +174,25 @@ void DFS(node *n, int *len, int currPathLen){
     if (!isRoot(n)){
         if (currPathLen + pathLength(n)>*len){
             *len = currPathLen + pathLength(n);
+            pair *newP = (pair *) malloc(sizeof(pair));
+            newP->end = *(n->end);
+            newP->begin = newP->end-*len+1;
+            newP->next = NULL;
+            t->next = newP;
+        } else if (currPathLen + pathLength(n)==*len){
+            *len = currPathLen + pathLength(n);
+            pair *newP = (pair *) malloc(sizeof(pair));
+            newP->end = *(n->end);
+            newP->begin = newP->end-*len+1;
+            newP->next = t->next;
+            t->next = newP;
         }
         currPathLen = pathLength(n);
     }
     printf("currentPathLen: %d, pathLen: %d\n", currPathLen, pathLength(n));
     for (int i=0; i<MAX_CHAR; i++){
         if (!isLeaf(n->children[i])){
-            DFS(n->children[i], len, currPathLen);
+            DFS(n->children[i], len, currPathLen, t);
         }
     }
 }
@@ -188,7 +200,18 @@ void DFS(node *n, int *len, int currPathLen){
 int longestRepeatedSubstring(suffixTree *st){
     int len = 0;
     int currPathLen = 0;
-    DFS(st->root, &len, currPathLen);
+    together t;
+    t.next = NULL;
+    t.lcs = 0;
+    DFS(st->root, &len, currPathLen, &t);
+    pair *ref = t.next;
+    while (ref){
+        for (int i=ref->begin; i<=ref->end; i++){
+            printf("%c", st->str[i]);
+        }
+        printf("\n");
+        ref = ref->next;
+    }
     return len;
 }
 
