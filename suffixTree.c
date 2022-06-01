@@ -64,16 +64,16 @@ void setSuffixIndexByDFS(node *n, int labelHeight, char *str)
     }
     if (leaf == 1)
     {
-        // for(i = *(n->start); i<= *(n->end); i++)
-        // {
-        //     // Trim unwanted characters
-        //     if(str[i] == '#')
-        //     {
-        //         n->end = (int*) malloc(sizeof(int));
-        //         *(n->end) = i;
-        //         break;
-        //     }
-        // }
+        for(i = *(n->start); i<= *(n->end); i++)
+        {
+            // Trim unwanted characters
+            if(str[i] == '#')
+            {
+                n->end = (int*) malloc(sizeof(int));
+                *(n->end) = i;
+                break;
+            }
+        }
         n->suffixIndex = strlen(str) - labelHeight;
         // printf(" %d\n", n->suffixIndex);
     }

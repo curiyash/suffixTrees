@@ -192,40 +192,40 @@ int longestRepeatedSubstring(suffixTree *st){
     return len;
 }
 
-int process(node *n, char *str){
-    int candidate = 0;
-    int candidacy[2] = {0,0};
+int *process(node *n, char *str, int candidacy[2]){
+    printf("start: %d, end: %d\n", *(n->start), *(n->end));
     for (int i=0; i<MAX_CHAR; i++){
         if (n->children[i]){
             if (isLeaf(n->children[i])){
-                printf("Leaf\n");
+                // printf("Leaf\n");
                 if (str[*(n->children[i]->end)]=='$'){
-                    printf("returned $\n");
+                    // printf("returned $\n");
                     candidacy[0] = 1;
                 } else{
-                    printf("returned #\n");
+                    // printf("returned #\n");
                     candidacy[1] = 1;
                 }
             } else {
-                printf("Internal node\n");
-                candidate = process(n->children[i], str);
+                // printf("Internal node\n");
+                int *candid = (int *) malloc(sizeof(int)*2);
+                candid = process(n->children[i], str, candid);
+                if (candid[0]){
+                    candidacy[0] = 1;
+                }
+                if (candid[1]){
+                    candidacy[1] = 1;
+                }
             }
         }
     }
-    if (*(n->end)==-1){
-        n->candidate = 0;
-        return 0;
-    }
+    printf("candidacy: %d %d\n", candidacy[0], candidacy[1]);
     if (candidacy[0] && candidacy[1]){
-        candidate = 1;
-    }
-    if (candidate){
         n->candidate = 1;
+        return candidacy;
     } else{
         n->candidate = 0;
+        return candidacy;
     }
-    printf("start: %d, end: %d\ncandidacy: %d\n", *(n->start), *(n->end), candidate);
-    return candidate;
 }
 
 // Alternative, do processing and lcs both in one
@@ -238,22 +238,82 @@ int label(node *n){
     return *(n->end)-*(n->start)+1;
 }
 
-void LCS(node *n, int *lcs, int loc[], int prevLabel){
+// void LCS(node *n, int *lcs, int rootParent, int prevStart, int prevLabel, int *begin, int *end, char *str){
+//     if (!n){
+//         return;
+//     }
+//     int root = isRoot(n);
+//     if (rootParent){
+//         prevStart = *(n->start);
+//         printf("prevStart: %d\n", *(n->start));
+//     }
+//     if (n->start && n->end){
+//         for (int i=*(n->start); i<=*(n->end); i++){
+//             printf("%c", str[i]);
+//         }
+//         printf("\n");
+//     }
+//     if (!root){
+//         rootParent = 0;
+//         if (!n->candidate) return;
+//         if (isLeaf(n)) return;
+//     } else{
+//         rootParent = 1;
+//     }
+//     if (prevLabel+label(n)>=*lcs){
+//         printf("Here\n");
+//         if (n->end){
+//             *end = *(n->end);
+//             printf("end: %d\n", *end);
+//         }
+//         *begin = prevStart;
+//         *lcs = prevLabel + label(n);
+//     }
+//     prevLabel = prevLabel + label(n);
+
+//     for(int i=0; i<MAX_CHAR; i++){
+//         // node *n, int *lcs, int root, int prevLabel, int *begin, int *end
+//         LCS(n->children[i], lcs, rootParent, prevStart, prevLabel, begin, end, str);
+//     }
+// }
+
+void LCS(node *n, int prevLabel, int *lcs, int *begin, int *end, int prevStart, together *t){
     if (!n){
         return;
     }
-    int root = isRoot(n);
-    if (!root){
-        if (!n->candidate) return;
-        if (isLeaf(n)) return;
+    if (isLeaf(n)) {
+        // printf("Leaf\n");
+        return;
     }
-    if (label(n)>=*lcs){
+    if (!n->candidate){
+        // printf("Candidacy: 0\n");
+        return;
+    }
+    // printf("prevLabel: %d, label: %d\n", prevLabel, label(n));
+    if (prevLabel+label(n) == *lcs) {
+        // printf("lcs: %d\n", *lcs);
+        *lcs = prevLabel+label(n);
+        *end = *(n->end);
+        // t->lcs = *lcs;
+        pair *newP = (pair *) malloc(sizeof(pair));
+        newP->end = *(n->end);
+        newP->begin = newP->end-*lcs+1;
+        if (t->next){
+            newP->next = t->next;
+        }
+        t->next = newP;
+    } else if (prevLabel+label(n) > *lcs){
         *lcs = prevLabel + label(n);
+        *end = *(n->end);
+        pair *newP = (pair *) malloc(sizeof(pair));
+        newP->end = *(n->end);
+        newP->begin = newP->end-*lcs+1;
+        t->next = newP;
     }
-    prevLabel = label(n);
-
+    prevLabel = prevLabel+label(n);
     for(int i=0; i<MAX_CHAR; i++){
-        LCS(n->children[i], lcs, loc, prevLabel);
+        if (n->children[i])
+            LCS(n->children[i], prevLabel, lcs, begin, end, prevStart, t);
     }
 }
 
@@ -262,10 +322,28 @@ int longestCommonSubstring(suffixTree *st){
         // candidates will be the ones containing strings from both strings
         // leaves are not candidates, vacuously true, but they are used to determine candidacy
         // of other nodes
-    process(st->root, st->str);
+    int candidacy[2] = {0, 0};
+    process(st->root, st->str, candidacy);
     int lcs = 0;
     int loc[2] = {0,0};
-    LCS(st->root, &lcs, loc, 0);
-    printf("start: %d, end: %d\n", loc[0], loc[1]);
+    int prevLabel = 0;
+    int begin = 0;
+    int end = 0;
+    together t;
+    t.next = NULL;
+    t.lcs = 0;
+    for (int i=0; i<MAX_CHAR; i++){
+        if (st->root->children[i])
+            LCS(st->root->children[i], prevLabel, &lcs, &begin, &end, *(st->root->children[i]->start), &t);
+    }
+    pair *ref = t.next;
+    while (ref){
+        printf("begin: %d, end: %d\n", ref->begin, ref->end);
+        for (int i=ref->begin; i<=ref->end; i++){
+            printf("%c", st->str[i]);
+        }
+        printf("\n");
+        ref = ref->next;
+    }
     return lcs;
 }
