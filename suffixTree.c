@@ -87,13 +87,21 @@ void setSuffixIndexByDFS(node *n, int labelHeight, char *str)
         // Add unique character to string at last
         // Initialize suffixTree's string variable
 void preprocessString(suffixTree *st, char *str){
-    int lengthStr = strlen(str);
-    st->str = (char *) malloc(sizeof(char)*lengthStr+1);
+    long int lengthStr = strlen(str);
+    printf("length: %ld\n", lengthStr);
+    st->str = (char *) malloc(sizeof(char)*(lengthStr+2));
     if (!st->str){
         printf("Out of memory\n");
     }
-    memcpy(st->str, str, lengthStr);
+    strcpy(st->str, str);
+    int i=0;
     st->str[lengthStr] = UNIQUE_CHAR;
+    st->str[lengthStr+1] = '\0';
+    // while (st->str[i]){
+    //     printf("%c", st->str[i]);
+    //     i++;
+    // }
+    // printf("\n");
 }
 
 node *newNode(int start, int *end){
@@ -123,6 +131,7 @@ void buildSuffixTree(suffixTree *st){
     char *str = st->str;
 
     // Start the loop for each phase
+    printf("strlen(str): %ld\n", strlen(str));
     for (int i=0; i<strlen(str); i++){
         beginPhase(st, i);
     }
