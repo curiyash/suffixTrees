@@ -171,6 +171,7 @@ void DFS(node *n, int *len, int currPathLen, together *t){
     }
     // printf("currentPathLen: %d, pathLen: %d\n", currPathLen, *len);
     printf("start: %d, end: %d\n", *(n->start), *(n->end));
+    printf("currentPathLen: %d, pathLen: %d\n", currPathLen, pathLength(n));
     if (!isRoot(n)){
         if (currPathLen + pathLength(n)>*len){
             *len = currPathLen + pathLength(n);
@@ -180,16 +181,16 @@ void DFS(node *n, int *len, int currPathLen, together *t){
             newP->next = NULL;
             t->next = newP;
         } else if (currPathLen + pathLength(n)==*len){
-            *len = currPathLen + pathLength(n);
             pair *newP = (pair *) malloc(sizeof(pair));
             newP->end = *(n->end);
             newP->begin = newP->end-*len+1;
             newP->next = t->next;
             t->next = newP;
         }
-        currPathLen = pathLength(n);
+        currPathLen = currPathLen + pathLength(n);
     }
     printf("currentPathLen: %d, pathLen: %d\n", currPathLen, pathLength(n));
+    printf("Max len: %d\n", *len);
     for (int i=0; i<MAX_CHAR; i++){
         if (!isLeaf(n->children[i])){
             DFS(n->children[i], len, currPathLen, t);

@@ -41,6 +41,8 @@ typedef struct suffixTree{
     int end;
 } suffixTree;
 
+// Serialization and Deserialization of suffix trees
+
 void initSuffixTree(suffixTree *st);
 void preprocessString(suffixTree *st, char *str);
 void buildSuffixTree(suffixTree *st);

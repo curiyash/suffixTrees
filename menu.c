@@ -18,29 +18,35 @@ void check(node *root, char *str){
     }
 }
 
-int main(){
+int main(int argc, char *argv[]){
     suffixTree st;
     initSuffixTree(&st);
-    char *str = "AAGGTAAGTTTAGAATATAAAAGGTGAGTTAAATAGAATAGGTTAAAATTAAAGGAGATCAGATCAGATCAGATCTATCTATCTATCTATCTATCAGAAAAGAGTAAATAGTTAAAGAGTAAGATATTGAATTAATGGAAAATATTGTTGGGGAAAGGAGGGATAGAAGG#CGCAAAGACTTTATTGCGCCCACAGTGGCTTTTGTCTACTGATTCCATAGATAATGACAAATGTTCAAGGGGTTCTGGTACTTAGTCCGATCTCAGTGCGACTCGGGGGCGAACGTCGTGGTTATAAACTCGTCCAGATGCCGGCGCCAAACAAATATGATCCCATTGTGCACCCCCACTGGTCAGAACTCTCGGTGCTTAAGCGATACACGCGTCCGTGAGCATTCAACACCCAACTACTAGTCCGGTAATCTGAATGCACACGTGGCCCGGGTTACCGGGATGCCGAAAGAAAGAAAG";
-    preprocessString(&st, str);
-    printf("%s\n", st.str);
-    buildSuffixTree(&st);
-    Display(st.root, st.str);
-    printf("---------------------------------------------------------\n");
-    // for (int i=0; i<256; i++){
-    //     if (st.root->children[i]){
-    //         printf("%c\n", i);
-    //         printf("%d %d\n", *(st.root->children[i]->start), *(st.root->children[i]->end));
-    //     }
-    // }
-    // checkForSubString(st, "ip");
-    // checkForSubString(st, "SSI");
-    // int count = countOccurences(&st, "AGATC");
-    // printf("count: %d\n", count);
-    // printf("longest repeated substring: %d\n", longestRepeatedSubstring(&st));
-    printf("longest common substring: %d\n", longestCommonSubstring(&st));
-    // printRoot2Leaf(&st);
+    int maxLength = maxLen(argc, argv);
+    printf("maxLength: %d\n", maxLength);
+    printf("---\n");
+    get_me_random_n_words(argc, argv, maxLen);
+    printf("---\n");
+    printf("Here\n");
+    // char *str = "mississippi#miss";
+    // preprocessString(&st, str);
+    // printf("%s\n", st.str);
+    // buildSuffixTree(&st);
+    // Display(st.root, st.str);
+    // printf("---------------------------------------------------------\n");
+    // // for (int i=0; i<256; i++){
+    // //     if (st.root->children[i]){
+    // //         printf("%c\n", i);
+    // //         printf("%d %d\n", *(st.root->children[i]->start), *(st.root->children[i]->end));
+    // //     }
+    // // }
+    // // checkForSubString(st, "ip");
+    // // checkForSubString(st, "SSI");
+    // // int count = countOccurences(&st, "AGATC");
+    // // printf("count: %d\n", count);
+    // // printf("longest repeated substring: %d\n", longestRepeatedSubstring(&st));
+    // printf("longest common substring: %d\n", longestCommonSubstring(&st));
+    // // printRoot2Leaf(&st);
 
-    // check(st.root, st.str);
-    printf("\n");
+    // // check(st.root, st.str);
+    // printf("\n");
 }
