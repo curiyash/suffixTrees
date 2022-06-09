@@ -1,5 +1,11 @@
 menu: suffixTree.o utilities.o queue.o maxLen.o get_me_random_n_words.o menu.o
 	gcc -o menu suffixTree.o utilities.o queue.o maxLen.o get_me_random_n_words.o menu.o
+dictionary: suffixTree.o utilities.o queue.o maxLen.o get_me_random_n_words.o dictionary.o
+	gcc -o dictionary suffixTree.o utilities.o queue.o maxLen.o get_me_random_n_words.o dictionary.o
+dna: dna.o suffixTree.o utilities.o queue.o maxLen.o
+	gcc -o dna dna.o suffixTree.o utilities.o queue.o maxLen.o
+dictionary.o: dictionary.c
+	gcc -c dictionary.c -o dictionary.o
 get_me_random_n_words.o: get_me_random_n_words.c
 	gcc -c get_me_random_n_words.c -o get_me_random_n_words.o
 maxLen.o: maxLen.c

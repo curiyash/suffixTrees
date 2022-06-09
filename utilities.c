@@ -11,18 +11,22 @@ int match(char *pat, int posStart, int start, int end, char *str, int *index){
     // -1 = no match
     int pos = posStart;
     int match = 0;
+    int partial = 0;
     for (int j=start; j<=end && pos<strlen(pat); j++){
         printf("Is %c==%c?\n", pat[pos], str[j]);
-        if (pat[pos]!=str[j]){
+        if (pat[pos]!=str[j] && j==start){
             return -1;
-        } else{
+        } else if (pat[pos]==str[j]){
             match++;
             *(index) = *(index)+1;
             pos++;
+        } else if (pat[pos]!=str[j]){
+            partial = 1;
+            break;
         }
     }
     printf("matches: %d, len: %ld\n", match, strlen(pat));
-    if (match!=strlen(pat)-posStart){
+    if (match<strlen(pat)-posStart || partial){
         return 0;
     }
     return 1;
@@ -79,6 +83,78 @@ int checkForSubString(suffixTree st, char *pat){
     }
 }
 
+void displayAllChildren(suffixTree *st, node *curr){
+    if (isLeaf(curr)){
+        for (int j=*(curr->start); j<=*(curr->end); j++){
+            printf("%c", st->str[j]);
+        }
+        printf("\n");
+        return;
+    }
+    for (int i=0; i<MAX_CHAR; i++){
+        if (curr->children[i]){
+            for (int j=*(curr->children[i]->start); j<=*(curr->children[i]->end); j++){
+                printf("%c", st->str[j]);
+            }
+            displayAllChildren(st, curr->children[i]);
+        }
+    }
+}
+
+int didYouMean(suffixTree st, char *pat){
+    node *curr = st.root;
+    int index = 0;
+    int update = 0;
+    int len = strlen(pat);
+    int i = 0;
+    int finalStatus = -1;
+    int partial = 0;
+    while (i<MAX_CHAR && index<len){
+        if (i==0){
+            printf("Yes\n");
+            printf("%d %d %d\n", *(curr->start), *(curr->end), index);
+        }
+        if (curr->children[i]){
+            // If pat doesn't match child label
+            printf("Checking: %d %d\n", *(curr->children[i]->start), *(curr->children[i]->end));
+            int status = match(pat, index, *(curr->children[i]->start), *(curr->children[i]->end), st.str, &update);
+            printf("status: %d %d\n", status, update);
+            finalStatus = status;
+            if (status==-1) {
+                i++;
+                continue;
+            };
+            // If full match
+            if (status==1){
+                printf("Is a substring\n");
+                return 1;
+            }
+            // If partial match
+            if (status==0){
+                curr = curr->children[i];
+                i = 0;
+                index = update;
+                partial = 1;
+                continue;
+            }
+        }
+        i++;
+    }
+    if (finalStatus==1){
+        printf("Is a substring\n");
+        return 1;
+    } else if (partial){
+        printf("-----------------------------\n");
+        displayAllChildren(&st, curr);
+        printf("Detected a partial match\n");
+        printf("-----------------------------\n");
+        return 0;
+    }else{
+        printf("Not a substring\n");
+        return 0;
+    }
+}
+
 int findLeaves(node *n){
     int leaves = 0;
     // Is the suffix index not -1
@@ -91,6 +167,25 @@ int findLeaves(node *n){
             leaves += findLeaves(n->children[i]);
         }
     }
+    return leaves;
+}
+
+int findConsecutiveLeaves(node *n){
+    int leaves = 0;
+    if (n->suffixIndex!=-1){
+        return 1;
+    }
+    printf("-----------------------\n");
+    for (int i=0; i<MAX_CHAR; i++){
+        if (n->children[i])
+            printf("child start: %d, parent end: %d\n", *(n->children[i]->start), *(n->end));
+        if (n->children[i] && *(n->children[i]->start)==*(n->end)+1){
+            printf("Here\n");
+            leaves += findConsecutiveLeaves(n->children[i]);
+        }
+    }
+    printf("-----------------------\n");
+    printf("Leaves: %d\n", leaves);
     return leaves;
 }
 
@@ -119,6 +214,8 @@ int countOccurences(suffixTree *st, char *pat){
             };
             // If full match
             if (status==1){
+                // count = findLeaves(curr->children[i]);
+                printf("start: %d | end: %d\n", *(curr->children[i]->start), *(curr->children[i]->end));
                 count = findLeaves(curr->children[i]);
                 return count;
             }
@@ -139,6 +236,127 @@ int countOccurences(suffixTree *st, char *pat){
         printf("Not a substring\n");
         return 0;
     }
+}
+
+int countChildren(node *curr){
+    int count = 0;
+    for (int i=0; i<MAX_CHAR; i++){
+        if (curr->children[i]) count++;
+    }
+    return count;
+}
+
+int matchForRepeats(char *pat, int posStart, int start, int end, char *str, int *index, int *readFrom){
+    // 1 = full match
+    // 0 = partial match
+    // -1 = no match
+    int pos = posStart;
+    int match = 0;
+    int partial = 0;
+    int j = start;
+    printf("start: %d | end: %d\n", start, end);
+    printf("pos: %d | j: %d\n", pos, j);
+    for (;j<=end && pos<strlen(pat); j++){
+        printf("Is %c==%c?\n", pat[pos], str[j]);
+        if (pat[pos]!=str[j] && j==start){
+            *readFrom = -1;
+            return -1;
+        } else if (pat[pos]==str[j]){
+            match++;
+            *(index) = *(index)+1;
+            pos++;
+        } else if (pat[pos]!=str[j]){
+            partial = 1;
+            break;
+        }
+    }
+    // printf("end: %d\n", end);
+    printf("index: %d\n", *index);
+    if (j!=end+1)
+        *readFrom = j;
+    else
+        *readFrom = -1;
+    // printf("matches: %d, len: %ld\n", match, strlen(pat));
+    if (match<strlen(pat)-posStart || partial){
+        return 0;
+    }
+    return 1;
+}
+
+int countRepeats(suffixTree *st, char *pat, node *curr, int *count){
+    // node *curr = st->root;
+    int index = 0;
+    int update = 0;
+    int len = strlen(pat);
+    int i = 0;
+    int finalStatus = -1;
+    // int count = 0;
+    int flagForCheck = 0;
+    int readFrom = 0;
+    while (i<MAX_CHAR && index<len){
+        if (i==0){
+            // printf("Yes\n");
+            // printf("%d %d %d\n", *(curr->start), *(curr->end), index);
+        }
+        if (curr->children[i]){
+            // If pat doesn't match child label
+            // printf("Checking: %d %d\n", *(curr->children[i]->start), *(curr->children[i]->end));
+            int status = 0;
+            update = 0;
+            if (flagForCheck)
+                status = matchForRepeats(pat, index, readFrom, *(curr->children[i]->end), st->str, &update, &readFrom);
+            else
+                status = matchForRepeats(pat, index, *(curr->children[i]->start), *(curr->children[i]->end), st->str, &update, &readFrom);
+            if (readFrom==-1) flagForCheck = 0;
+            else flagForCheck = 1;
+            printf("status: %d %d\n", status, update);
+            finalStatus = status;
+            if (status==-1) {
+                i++;
+                continue;
+            };
+            // If full match
+            if (status==1){
+                // count = findLeaves(curr->children[i]);
+                // printf("start: %d | end: %d\n", *(curr->start), *(curr->end));
+                // printf("start: %d | end: %d\n", *(curr->children[i]->start), *(curr->children[i]->end));
+                // printf("update: %d\n", update);
+                *count = *count+1;
+                if (isLeaf(curr)){
+                    return *count;
+                }
+                printf("##############################################\n");
+                if (flagForCheck){
+                    printf("Curr remains\n");
+                    printf("readFrom: %d | end: %d\n", readFrom, *(curr->children[i]->end));
+                    index = *(curr->children[i]->end)-readFrom;
+                    printf("index: %d\n", index);
+                    // return countRepeats(st, pat, curr, count);
+                    continue;
+                }
+                printf("Curr did not remain\n");
+                printf("Node Changed\n");
+                return countRepeats(st, pat, curr->children[i], count);
+            }
+            // If partial match
+            if (status==0){
+                printf("Node Changed\n");
+                curr = curr->children[i];
+                i = 0;
+                index = index+update;
+                continue;
+            }
+        }
+        i++;
+    }
+    if (finalStatus==1){
+        printf("Is a substring\n");
+        // *count+=1;
+        return *count;
+    } else{
+        printf("Not a substring\n");
+        return 0;
+    }   
 }
 
 // int isLeaf(node *n){

@@ -15,3 +15,5 @@ int checkForSubString(suffixTree st, char *pat);
 int countOccurences(suffixTree *st, char *pat);
 int longestRepeatedSubstring(suffixTree *st);
 int longestCommonSubstring(suffixTree *st);
+int countRepeats(suffixTree *st, char *pat, node *curr, int *count);
+// int countRepeats(suffixTree *st, char *pat);
