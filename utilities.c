@@ -93,8 +93,11 @@ void displayAllChildren(suffixTree *st, node *curr){
     }
     for (int i=0; i<MAX_CHAR; i++){
         if (curr->children[i]){
-            for (int j=*(curr->children[i]->start); j<=*(curr->children[i]->end); j++){
-                printf("%c", st->str[j]);
+            if (!isLeaf(curr->children[i])){
+                for (int j=*(curr->children[i]->start); j<=*(curr->children[i]->end); j++){
+                    printf("%c", st->str[j]);
+                }
+                printf("|");
             }
             displayAllChildren(st, curr->children[i]);
         }
@@ -145,6 +148,7 @@ int didYouMean(suffixTree st, char *pat){
         return 1;
     } else if (partial){
         printf("-----------------------------\n");
+        printf("start: %d | end: %d\n", *(curr->start), *(curr->end));
         displayAllChildren(&st, curr);
         printf("Detected a partial match\n");
         printf("-----------------------------\n");

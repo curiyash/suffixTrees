@@ -131,7 +131,7 @@ void buildSuffixTree(suffixTree *st){
     char *str = st->str;
 
     // Start the loop for each phase
-    printf("strlen(str): %ld\n", strlen(str));
+    // printf("strlen(str): %ld\n", strlen(str));
     for (int i=0; i<strlen(str); i++){
         beginPhase(st, i);
     }
@@ -204,9 +204,9 @@ void beginPhase(suffixTree *st, int i){
             // Is there a path from activeNode with i?
 
             // Create a path if not
-            printf("1\n");
+            // printf("1\n");
             if (st->ap.activeNode->children[st->str[i]]==NULL){
-                printf("1a\n");
+                // printf("1a\n");
                 node *nn = newNode(i, &(st->end));
                 // printf("nn\nstart: %d, end; %d\n", *(nn->start), *(nn->end));
                 // st->ap.activeNode->children[c] = nn;
@@ -216,18 +216,18 @@ void beginPhase(suffixTree *st, int i){
             else {
                 // Show stopper
                 // activeIndex becomes start index of the path that exists
-                printf("1b\n");
+                // printf("1b\n");
                 st->ap.activeEdge = *(st->root->children[st->str[i]]->start);
                 st->ap.activeLength++;
                 break;
             }
         } else {
-            printf("Here\n");
+            // printf("Here\n");
             char ch = isEndOfPath(st, i);
             if(ch!=0){
-                printf("2a\n");
+                // printf("2a\n");
                 if (ch==st->str[i]){
-                    printf("eq\n");
+                    // printf("eq\n");
                     if (lastCreatedInternalNode){
                         lastCreatedInternalNode->suffixLink = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
                     }
@@ -241,7 +241,7 @@ void beginPhase(suffixTree *st, int i){
                     node *new = newNode(oldStart, NULL);
                     new->end = (int *) malloc(sizeof(int));
                     *(new->end) = oldStart+st->ap.activeLength-1;
-                    printf("neq\n");
+                    // printf("neq\n");
 
                     node *newLeaf = newNode(i, &(st->end));
 
@@ -265,9 +265,9 @@ void beginPhase(suffixTree *st, int i){
                     st->remaining--;
                 }
             } else{
-                printf("2b\n");
+                // printf("2b\n");
                 // End of Path
-                printf("End of path\n");
+                // printf("End of path\n");
                 node *n = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
                 n->children[st->str[i]] = newNode(i, &(st->end));
                 if (lastCreatedInternalNode){
@@ -283,13 +283,13 @@ void beginPhase(suffixTree *st, int i){
                 st->remaining--;
             }
         }
-        printf("-----\n");
-        printActivePoints(*st, st->ap);
-        printf("-----\n");
+        // printf("-----\n");
+        // printActivePoints(*st, st->ap);
+        // printf("-----\n");
     }
-    printf("-----\n");
-    printActivePoints(*st, st->ap);
-    printf("-----\n");
+    // printf("-----\n");
+    // printActivePoints(*st, st->ap);
+    // printf("-----\n");
 }
 
 int count = 0;
