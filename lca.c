@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
-#include "suffixTree.h"
+#include "dnaSuffixTree.h"
 #include "lca.h"
-#include "utilities.h"
+#include "dnaUtilities.h"
 #include "stack.h"
 
 int SIZE = 50000;
@@ -44,6 +44,7 @@ void EulerTour(node *n, lcaElem *lcaArr, int size, int *pos, int depth, int visi
     // printf("pos: %d | depth: %d | visited: %d\n", *pos, depth, visited);
     for (int i=0; i<MAX_CHAR; i++){
         if (n->children[i]){
+            printf("I'm here\n");
             EulerTour(n->children[i], lcaArr, size, pos, depth+*(n->children[i]->end)-*(n->children[i]->start)+1, ++visited, visit, R, rpos);
             lcaArr[*pos].n = n;
             lcaArr[*pos].depth = depth;
@@ -117,18 +118,18 @@ int findMin(lcaElem *lcaArr, int *R, int u, int v, long long **st){
     //     }
     // }
     // printf("start: %d | end: %d\n", *(l->n->start), *(l->n->end));
-    printf("min: %d\n", min);
+    // printf("min: %d\n", min);
     return min;
 }
 
-void lca(suffixTree *st){
+long long **lca(suffixTree *st, long long **spt){
     lcaElem *lcaArr = (lcaElem *) malloc(sizeof(lcaElem)*SIZE);
     int *visited = (int *) calloc(SIZE, sizeof(int));
     int *R = (int *) malloc(sizeof(int)*SIZE);
     int pos = 0;
     int rpos = 0;
+    printf("Here Euler\n");
     EulerTour(st->root, lcaArr, SIZE, &pos, 0, 0, visited, R, &rpos);
-    // printf("Here\n");
     DisplayLCAArr(lcaArr, pos);
     printf("\n");
     for (int i=0; i<rpos; i++){
@@ -137,7 +138,9 @@ void lca(suffixTree *st){
     printf("\n");
     // int *unique = (int *) calloc(42, sizeof(int));
 
-    long long **spt = SparseTable(lcaArr, pos);
+    if (!spt){
+        spt = SparseTable(lcaArr, pos);
+    }
     // DisplaySparseTable(spt, pos, logtwo(pos));
 
     // For LCA, find the minimum depth between the two nodes in lcaArr
@@ -268,26 +271,27 @@ void lca(suffixTree *st){
     }
     printf("c: %d\n", c);
     printf("rpos: %d\n", rpos);
+    return spt;
 }
 
-void check(node *root, char *str){
-    for (int i=0; i<256; i++){
-        if (root->children[i]){
-            printf("parent: %d %d\n", *(root->start), *(root->end));
-            // for (int j=*(root->start); j<=*(root->end); j++){
-            //     printf("%c", str[j]);
-            // }
-            // printf("\n");
-            printf("%c\n", i);
-            printf("%d %d\n", *(root->children[i]->start), *(root->children[i]->end));
-            printf("%d\n", root->children[i]->suffixIndex);
-            check(root->children[i], str);
-        }
-    }
-}
+// void check(node *root, char *str){
+//     for (int i=0; i<256; i++){
+//         if (root->children[i]){
+//             printf("parent: %d %d\n", *(root->start), *(root->end));
+//             // for (int j=*(root->start); j<=*(root->end); j++){
+//             //     printf("%c", str[j]);
+//             // }
+//             // printf("\n");
+//             printf("%c\n", i);
+//             printf("%d %d\n", *(root->children[i]->start), *(root->children[i]->end));
+//             printf("%d\n", root->children[i]->suffixIndex);
+//             check(root->children[i], str);
+//         }
+//     }
+// }
 
 void preprocessStringForLPS(suffixTree *st, char *str){
-    int len = strlen(str);
+    int len = strlen(str)-1;
     char *temp = (char *) malloc(sizeof(char)*(len*2+3));
     for (int i=0; i<len; i++){
         temp[i] = str[i];
@@ -317,7 +321,7 @@ void DFSLPS(node *n, int *count){
 }
 
 void makeComplementReverse(suffixTree *st, char *str){
-    int len = strlen(str);
+    int len = strlen(str)-1;
     char *temp = (char *) malloc(sizeof(char)*(len*2+3));
     for (int i=0; i<len; i++){
         temp[i] = str[i];
@@ -347,7 +351,70 @@ void makeComplementReverse(suffixTree *st, char *str){
     free(temp);
 }
 
-void kMismatch(suffixTree *st){
+// void kMisMatch(suffixTree *st, int k, int patLen){
+//     lcaElem *lcaArr = (lcaElem *) malloc(sizeof(lcaElem)*SIZE);
+//     int *visited = (int *) calloc(SIZE, sizeof(int));
+//     int *R = (int *) malloc(sizeof(int)*SIZE);
+//     int pos = 0;
+//     int rpos = 0;
+//     EulerTour(st->root, lcaArr, SIZE, &pos, 0, 0, visited, R, &rpos);
+//     // printf("Here\n");
+//     DisplayLCAArr(lcaArr, pos);
+//     printf("\n");
+//     for (int i=0; i<rpos; i++){
+//         printf("%d ", R[i]);
+//     }
+//     printf("\n");
+
+//     long long **spt = SparseTable(lcaArr, pos);
+//     // DisplaySparseTable(spt, pos, logtwo(pos));
+
+//     int p = 0;
+//     int min = 0;
+//     int orgk = k;
+//     int i=0;
+//     int strL = strlen(st->str)-patLen-1;
+//     int start = 0;
+//     while (i<strL){
+//         if (k==0){
+//             i--;
+//             k = orgk;
+//             start = p;
+//             p = 0;
+//             printf("Reset, i: %d\n", strL+p);
+//         }
+//         // Find LCP of i+p: and 6+p:
+//         min = findMin(lcaArr, R, i, strL+p, spt);
+//         printf("%d %d\n", i, strL+p);
+//         printf("min: %d\n\n", min);
+//         if (p+min<patLen || min==0){
+//             // Partial match
+//             if (!min) {
+//                 k--;
+//                 i++;
+//                 continue;
+//             }
+//             p = p+min;
+//             i = i+min;
+//             if (!min!=0){
+//                 printf("p: %d\n", p);
+//             }
+//             continue;
+//         } else if (p+min>=patLen){
+//             // printf("p: %d\n", p);
+//             // Full match detected
+//             printf("Found\n");
+//             printf("start: %d\n", start);
+//             break;
+//         }
+//         i++;
+//     }
+//     if (!k){
+//         printf("Not found\n");
+//     }
+// }
+
+long long **kMisMatch(suffixTree *st, int k, int patLen, long long **spt){
     lcaElem *lcaArr = (lcaElem *) malloc(sizeof(lcaElem)*SIZE);
     int *visited = (int *) calloc(SIZE, sizeof(int));
     int *R = (int *) malloc(sizeof(int)*SIZE);
@@ -362,66 +429,95 @@ void kMismatch(suffixTree *st){
     }
     printf("\n");
 
-    long long **spt = SparseTable(lcaArr, pos);
+    if (!spt){
+        spt = SparseTable(lcaArr, pos);
+    }
     // DisplaySparseTable(spt, pos, logtwo(pos));
 
-    int p = 0;
-    int patLen = 3;
+    int strL = strlen(st->str);
     int min = 0;
-    int k = 3;
-    int i=0;
-    while (i<strlen(st->str) && k){
-        // Find LCP of i+p: and 6+p:
-        min = findMin(lcaArr, R, i, 6+p, spt);
-        printf("%d %d\n", i, 6+p);
-        printf("min: %d\n", min);
-        if (p+min<patLen || min==0){
-            // Partial match
-            if (!min) {
-                k--;
-                i++;
-                continue;
-            }
-            p = p+min;
-            i = i+p;
-            if (!min!=0){
-                printf("p: %d\n", p);
-            }
+    int p = 0;
+    int sec = 0;
+    int mainL = strL-patLen-2;
+    int foundFlag = 0;
+    int prevMin = 0;
+    for (int i=0; i<mainL && !foundFlag; i++){
+        sec = 0;
+        min = findMin(lcaArr, R, i, mainL+1, spt);
+        // printf("i: %d | p: %d\n", i, mainL+1);
+        // printf("min: %d\n", min);
+        if (min==0){
+            // printf("Not found at %d\n", i);
             continue;
-        } else if (p+min>=patLen){
-            // printf("p: %d\n", p);
-            // Full match detected
-            printf("Found\n");
-            break;
         }
-        i++;
+        if (min==patLen){
+            printf("Found at %d\n", i);
+            continue;
+        }
+        // Partial match
+        p = min;
+        sec = i+p;
+        prevMin = min;
+        // printf("p: %d | sec: %d\n", min, sec);
+        for (int j=0; j<k+1; j++){
+            min = findMin(lcaArr, R, sec, mainL+p+1, spt);
+            // printf("i: %d | p: %d\n", sec, mainL+p+1);
+            // printf("min: %d\n", min);
+            p+=min;
+            if (p==patLen){
+                printf("Found at %d\n", i);
+                // p = prevMin;
+                // foundFlag = 1;
+                break;
+            }
+            sec+=p;
+        }
+        // printf("Not found at %d\n", i);
     }
-    if (!k){
-        printf("Not found\n");
-    }
+    // printf("Not found\n");
+    return spt;
 }
 
-int main(){
-    suffixTree st;
-    initSuffixTree(&st);
-    // Test case
-    // char *str = "AATGTACGATCGTACTAT";
-    char *str = "abadcfgcdaba";
-    preprocessStringForLPS(&st, str);
-    // preprocessString(&st, str);
-    // makeComplementReverse(&st, str);
-    // free(str);
-    printf("%s\n", st.str);
-    buildSuffixTree(&st);
-
-    // check(st.root, st.str);
-    // printf("-----------------------------\n");
-    lca(&st);
-    // int count = 0;
-    // DFSLPS(st.root, &count);
-    // printf("count: %d\n", count);
-    // longestCommonSubstring(&st);
-    // kMismatch(&st);
-    // printf("%lld\n", logtwo(42));
-    return 0;
+void preprocessStringForKMisMatch(suffixTree *st, char *str, char *pat){
+    int len = strlen(str)-1;
+    int patLen = strlen(pat);
+    char *temp = (char *) malloc(sizeof(char)*(len+patLen+3));
+    for (int i=0; i<len; i++){
+        temp[i] = str[i];
+    }
+    // printf("%s\n", temp);
+    temp[len] = '#';
+    for (int i=len+1; i<len+patLen+1; i++){
+        temp[i] = pat[i-len-1];
+    }
+    temp[len+patLen+1] = '$';
+    st->str = (char *) malloc(sizeof(char)*(len*2+3));
+    strcpy(st->str, temp);
+    free(temp);
 }
+
+// int main(){
+//     suffixTree st;
+//     initSuffixTree(&st, 7, 1);
+//     printf("MAX_CHAR: %d\n", MAX_CHAR);
+//     // Test case
+//     // char *str = "AATGTACGATCGTACTAT";
+//     char *str = "AGATTAGC#AAC";
+//     // preprocessStringForLPS(&st, str);
+//     preprocessString(&st, str);
+//     // makeComplementReverse(&st, str);
+//     // free(str);
+//     printf("%s\n", st.str);
+//     buildSuffixTree(&st);
+
+//     // check(st.root, st.str);
+//     // printf("-----------------------------\n");
+//     // lca(&st);
+//     // int count = 0;
+//     // DFSLPS(st.root, &count);
+//     // printf("count: %d\n", count);
+//     // longestCommonSubstring(&st);
+//     kMisMatch(&st, 3, 3);
+//     // printf("%lld\n", logtwo(42));
+//     return 0;
+// }

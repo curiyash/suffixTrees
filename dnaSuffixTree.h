@@ -43,9 +43,12 @@ typedef struct suffixTree{
 // Serialization and Deserialization of suffix trees
 
 void initSuffixTree(suffixTree *st, int maxChar, int status);
+int freeSuffixTree(node *n, int *count);
+int Load(suffixTree *st, int loaded);
+int LoadPat(char **pat);
 void preprocessString(suffixTree *st, char *str);
-void buildSuffixTree(suffixTree *st);
+int buildSuffixTree(suffixTree *st);
 void Display(node *t, char *str);
-int checkForSubString(suffixTree st, char *pat);
+// int checkForSubString(suffixTree st, char *pat);
 int isLeaf(node *n);
 void printRoot2Leaf(suffixTree *st);

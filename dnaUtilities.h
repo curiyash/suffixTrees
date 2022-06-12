@@ -12,9 +12,15 @@ typedef struct together{
     struct pair *next;
 } together;
 
-int checkForSubString(suffixTree st, char *pat);
+typedef struct matchPos{
+    int length;
+    struct pair *next;
+} matchPos;
+
+int checkForSubString(suffixTree *st, char *pat);
 int countOccurences(suffixTree *st, char *pat);
 int longestRepeatedSubstring(suffixTree *st);
 int longestCommonSubstring(suffixTree *st);
 int countRepeats(suffixTree *st, char *pat, node *curr, int *count);
+void preprocessStringForLCS(suffixTree *st, char *str, char *pat);
 // int countRepeats(suffixTree *st, char *pat);

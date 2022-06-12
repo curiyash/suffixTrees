@@ -32,14 +32,34 @@ int match(char *pat, int posStart, int start, int end, char *str, int *index){
     return 1;
 }
 
-int checkForSubString(suffixTree st, char *pat){
-    node *curr = st.root;
+void getSuffixIndices(node *n, matchPos *t){
+    if (isLeaf(n)){
+        pair *p = (pair *) malloc(sizeof(pair));
+        p->begin = n->suffixIndex;
+        p->next = t->next;
+        t->next = p;
+    }
+    for (int i=0; i<MAX_CHAR; i++){
+        if (n->children[i]){
+            getSuffixIndices(n->children[i], t);
+        }
+    }
+}
+
+int checkForSubString(suffixTree *st, char *pat){
+    node *curr = st->root;
     int index = 0;
     int update = 0;
     int len = strlen(pat);
     int i = 0;
     int finalStatus = -1;
     int partial = 0;
+    matchPos *t = (matchPos *) malloc(sizeof(matchPos));
+    t->length = len;
+    t->next = NULL;
+    int wasPartial = 0;
+    int beganAt = 0;
+    int endedAt = 0;
     while (i<MAX_CHAR && index<len){
         if (i==0){
             printf("Yes\n");
@@ -48,9 +68,11 @@ int checkForSubString(suffixTree st, char *pat){
         if (curr->children[i]){
             // If pat doesn't match child label
             printf("Checking: %d %d\n", *(curr->children[i]->start), *(curr->children[i]->end));
-            int status = match(pat, index, *(curr->children[i]->start), *(curr->children[i]->end), st.str, &update);
+            int status = match(pat, index, *(curr->children[i]->start), *(curr->children[i]->end), st->str, &update);
             printf("status: %d %d\n", status, update);
-            finalStatus = status;
+            if (!finalStatus){
+                finalStatus = status;
+            }
             if (status==-1) {
                 i++;
                 continue;
@@ -58,14 +80,25 @@ int checkForSubString(suffixTree st, char *pat){
             // If full match
             if (status==1){
                 printf("Is a substring\n");
+                // i++;
+                getSuffixIndices(curr->children[i], t);
+                pair *ref = t->next;
+                printf("Found at positions...\n");
+                while (ref){
+                    printf("%d ", ref->begin);
+                    ref=ref->next;
+                }
+                printf("\n");
                 return 1;
             }
             // If partial match
             if (status==0){
+                beganAt = *(curr->children[i]->start);
                 curr = curr->children[i];
                 i = 0;
                 index = update;
                 partial = 1;
+                wasPartial = 1;
                 continue;
             }
         }
@@ -432,13 +465,17 @@ int longestRepeatedSubstring(suffixTree *st){
     printf("start: %p | end: %p\n", st->root->start, st->root->end);
     DFS(st->root, &len, currPathLen, &t);
     pair *ref = t.next;
+    // char *str = (char *) malloc(sizeof(char)*len);
     while (ref){
         for (int i=ref->begin; i<=ref->end; i++){
+            // str[i-ref->begin] = st->str[i];
             printf("%c", st->str[i]);
         }
         printf("\n");
+        // checkForSubString(st, str);
         ref = ref->next;
     }
+    printf("\n");
     return len;
 }
 
@@ -477,9 +514,6 @@ int *process(node *n, char *str, int candidacy[2]){
         return candidacy;
     }
 }
-
-// Alternative, do processing and lcs both in one
-// Why not if it does not work?
 
 int label(node *n){
     if (*(n->end)==-1){
@@ -596,4 +630,22 @@ int longestCommonSubstring(suffixTree *st){
         ref = ref->next;
     }
     return lcs;
+}
+
+void preprocessStringForLCS(suffixTree *st, char *str, char *pat){
+    int len = strlen(str)-1;
+    int other = strlen(pat);
+    char *temp = (char *) malloc(sizeof(char)*(len+other+3));
+    for (int i=0; i<len; i++){
+        temp[i] = str[i];
+    }
+    // printf("%s\n", temp);
+    temp[len] = '#';
+    for (int i=len+1; i<len+other+1; i++){
+        temp[i] = pat[i-len-1];
+    }
+    temp[len+other+1] = '$';
+    st->str = (char *) malloc(sizeof(char)*(len*2+3));
+    strcpy(st->str, temp);
+    free(temp);
 }
