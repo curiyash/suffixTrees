@@ -5,40 +5,8 @@
 #include "dnaUtilities.h"
 #include "lca.h"
 
-char Encode(int a){
-    switch (a){
-        case 0: return '\0';
-        case 1: return '#';
-        case 2: return '$';
-        case 3: return 'A';
-        case 4: return 'C';
-        case 5: return 'G';
-        case 6: return 'T';
-        default: return '\0';
-    }   
-}
-
-void check(node *root, char *str, suffixTree *st){
-    for (int i=0; i<7; i++){
-        if (root->children[i]){
-            printf("parent: %d %d\n", *(root->start), *(root->end));
-            // for (int j=*(root->start); j<=*(root->end); j++){
-            //     printf("%c", str[j]);
-            // }
-            // printf("\n");
-            printf("%c\n", Encode(i));
-            printf("%d %d\n", *(root->children[i]->start), *(root->children[i]->end));
-            check(root->children[i], str, st);
-        }
-    }
-}
-
-void WhereIsItGoingWrong(suffixTree *st){
-    printf("%d %d\n", *(st->root->start), *(st->root->end));
-}
-
 void Menu(){
-    printf("DNA Sequence Menu\n");
+    printf("\nDNA Sequence Menu\n");
     printf("-----------------\n");
     int i = 0;
     printf("%d. Exit\n", i++);
@@ -50,8 +18,8 @@ void Menu(){
     printf("%d. Approximate Sequence Matching\n", i++);
     printf("%d. Longest Common Substring between 2 sequences\n", i++);
     printf("%d. Count occurrences of a substring in sequence\n", i++);
-    printf("%d. Count occurrence of given STR in sequence\n", i++);
-    printf("\n");
+    printf("%d. Find longest continuous occurrence of given STR in sequence\n", i++);
+    printf("\n\n");
 }
 
 int main(){
@@ -77,6 +45,7 @@ int main(){
         printf("Enter option number: ");
         scanf("%d", &op_num);
         fflush(stdin);
+        printf("\n");
         switch(op_num){
             case 0: loop = 0;
                 break;

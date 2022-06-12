@@ -1,14 +1,116 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "suffixTree.h"
+#include "dnaSuffixTree.h"
 #include <string.h>
 
 // Define a unique char which avoids implicit suffix trees
 #define UNIQUE_CHAR '$'
+int MAX_CHAR = 256;
+int STATUS = 0;
 
 // Functions
     // Defined only in this file
-void beginPhase(suffixTree *st, int i);
+void beginPhase(suffixTree *st, int i, int *numNodes, int *memFlag);
+
+int freeSuffixTree(node *n, int *count){
+    if (n){
+        node *ref = n;
+        for (int i=0; i<MAX_CHAR; i++){
+            // Do DFS traversal
+            // Once all children are visited, delete the parent
+            if (n->children[i]){
+                freeSuffixTree(n->children[i], count);
+            }
+        }
+        *count = *count+1;
+        free(n->children);
+        free(n);
+    }
+}
+
+int Load(suffixTree *st, int loaded){
+    char filename[100];
+    int goAhead = 0;
+    int freeNodes = 0;
+    char c;
+    if (loaded){
+        printf("A suffix tree was already loaded for the string - %s\n Do you want to delete it? 1/0\n", st->str);
+        fflush(stdin);
+        scanf("%d", &goAhead);
+        fflush(stdin);
+        switch(goAhead){
+            case 1: freeSuffixTree(st->root, &freeNodes);
+                    printf("Freed %d nodes\n", freeNodes);
+                    break;
+            case 0: return 1;
+            default: printf("Invalid input\n");
+                printf("Aborting operation\n");
+                return 1;
+        }
+    } else{
+        loaded = 1;
+    }
+    int numNodes = 0;
+    printf("Enter path of file to read-in a sequence\nNote: filename is limited to be under 100 characters\n");
+    scanf(" %[^\n]%*c", filename);
+    FILE *fp = fopen(filename, "r");
+    // printf("%s\n", filename);
+    if (!fp){
+        printf("Error in opening a file. Possibly look at...\n1. If you have entered correct path\n2. If the path actually exists\n");
+        loaded = 0;
+        return 0;
+    }
+    int count = 0;
+    for (c=getc(fp); c!=EOF; c=getc(fp)){
+        if (c=='\n' || c=='\r' || c=='\t') {
+            count--;
+        }
+        count++;
+    }
+    char *str = (char *) malloc(sizeof(char)*(count+1));
+    rewind(fp);
+    fscanf(fp, "%[^\n]%*c", str);
+    // printf("%s\n", str);
+    preprocessString(st, str);
+    numNodes = buildSuffixTree(st);
+    if (numNodes==-1){
+        printf("Out of memory :|\nIf you would please, report this to me at: curiyash19@gmail.com with the string input you were trying. I'll try and get back to you with possible hopes of resolving the issue :)\n");
+        loaded = 0;
+        return 0;
+    } else{
+        printf("\nSuccessfully built the tree\n");
+        printf("number of nodes: %d\n\n", numNodes);
+        return 1;
+    }
+}
+
+int LoadPat(char **pat){
+    char filename[100];
+    char c;
+    printf("Enter path of file to read-in the pattern\nNote: filename is limited to be under 100 characters\n");
+    scanf(" %[^\n]%*c", filename);
+    FILE *fp = fopen(filename, "r");
+    // printf("%s\n", filename);
+    if (!fp){
+        printf("Error in opening a file. Possibly look at...\n1. If you have entered correct path\n2. If the path actually exists\n3. Do not include '\\' as a separator for path, use '/'\n");
+        return 1;
+    }
+    int count = 0;
+    for (c=getc(fp); c!=EOF; c=getc(fp)){
+        if (c=='\n' || c=='\r' || c=='\t') {
+            count--;
+        }
+        count++;
+    }
+    *pat = (char *) malloc(sizeof(char)*(count+1));
+    if (!(*pat)){
+        return 1;
+    }
+    rewind(fp);
+    fscanf(fp, "%[^\n]%*c", *pat);
+    // printf("%s\n", *pat);
+    return 0;
+}
 
 // 1. initSuffixTree
     // Input: 
@@ -18,13 +120,37 @@ void beginPhase(suffixTree *st, int i);
         // Point root to NULL
         // Initialize remaining and end
         // Intialize active points
-void initSuffixTree(suffixTree *st){
+void initSuffixTree(suffixTree *st, int maxChar, int status){
     st->root = NULL;
     st->remaining = 0;
     st->end = -1;
     st->ap.activeNode = NULL;
     st->ap.activeEdge = -1;
     st->ap.activeLength = 0;
+    MAX_CHAR = maxChar;
+    STATUS = status;
+}
+
+int Decoder(char C){
+    switch(C){
+        case '\0': return 0;
+        case '#': return 1;
+        case '$': return 2;
+        case 'A': return 3;
+        case 'C': return 4;
+        case 'G': return 5;
+        case 'T': return 6;
+        default: printf("Invalid character encountered\n"); return -1;
+    }
+}
+
+int Decode(char c){
+    // printf("STATUS: %d\n", STATUS);
+    if (!STATUS){
+        return c;
+    } else{
+        return Decoder(c);
+    }
 }
 
 int edgeLength(node *n){
@@ -53,8 +179,8 @@ void setSuffixIndexByDFS(node *n, int labelHeight, char *str)
     {
         if (n->children[i] != NULL)
         {
-            if (leaf == 1 && *(n->start) != -1)
-                printf(" [%d]\n", n->suffixIndex);
+            // if (leaf == 1 && *(n->start) != -1)
+                // printf(" [%d]\n", n->suffixIndex);
  
             //Current node is not a leaf as it has outgoing
             //edges from it.
@@ -75,7 +201,7 @@ void setSuffixIndexByDFS(node *n, int labelHeight, char *str)
             }
         }
         n->suffixIndex = strlen(str) - labelHeight;
-        printf(" %d\n", n->suffixIndex);
+        // printf(" %d\n", n->suffixIndex);
     }
 }
 
@@ -88,7 +214,7 @@ void setSuffixIndexByDFS(node *n, int labelHeight, char *str)
         // Initialize suffixTree's string variable
 void preprocessString(suffixTree *st, char *str){
     long int lengthStr = strlen(str);
-    printf("length: %ld\n", lengthStr);
+    // printf("length: %ld\n", lengthStr);
     st->str = (char *) malloc(sizeof(char)*(lengthStr+2));
     if (!st->str){
         printf("Out of memory\n");
@@ -106,14 +232,22 @@ void preprocessString(suffixTree *st, char *str){
 
 node *newNode(int start, int *end){
     node *nn = (node *) malloc(sizeof(node));
+    if (!nn){
+        return NULL;
+    }
+    nn->children = (node **) malloc(sizeof(node *)*MAX_CHAR);
 
     for (int i=0; i<MAX_CHAR; i++){
         nn->children[i] = NULL;
     }
     nn->start = (int *) malloc(sizeof(int));
+    if (!nn->start){
+        return NULL;
+    }
     *(nn->start) = start;
     nn->end = end;
     nn->suffixLink = NULL;
+    // printf("MAX_CHAR: %d\n", MAX_CHAR);
     return nn;
 }
 
@@ -122,22 +256,39 @@ node *newNode(int start, int *end){
         // suffixTree *st: pointer to a suffixTree
     // Expected outcome:
         // Build the suffixTree for its string
-void buildSuffixTree(suffixTree *st){
+    // Return: number of nodes
+            // -1: heap overflow
+int buildSuffixTree(suffixTree *st){
+    int numNodes = 0;
     st->root = newNode(-1, NULL);
+    if (!st->root){
+        return -1;
+    }
+    numNodes++;
+    // printf("Here42\n");
     st->root->end = (int *) malloc(sizeof(int));
     *(st->root->end) = -1;
     st->ap.activeNode = st->root;
 
     char *str = st->str;
+    // printf("%s\n", str);
+    // printf("Here\n");
 
     // Start the loop for each phase
     // printf("strlen(str): %ld\n", strlen(str));
+    int memFlag = 0;
+    char status;
     for (int i=0; i<strlen(str); i++){
-        beginPhase(st, i);
+        beginPhase(st, i, &numNodes, &memFlag);
+        if (memFlag){
+            return -1;
+        }
+        // printf("numNodes: %d\n", numNodes);
     }
 
     // Set suffix indices
     setSuffixIndexByDFS(st->root, 0,st->str);
+    return numNodes;
 }
 
 int diff(node *n){
@@ -146,12 +297,12 @@ int diff(node *n){
 
 void walkDown(suffixTree *st, int i){
     // Travel until active
-    node *n = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
+    node *n = st->ap.activeNode->children[Decode(st->str[st->ap.activeEdge])];
 
     if (diff(n)<st->ap.activeLength){
         st->ap.activeNode = n;
         st->ap.activeLength = st->ap.activeLength - diff(n);
-        st->ap.activeEdge = *(st->ap.activeNode->children[st->str[i]]->start);
+        st->ap.activeEdge = *(st->ap.activeNode->children[Decode(st->str[i])]->start);
     } else{
         st->ap.activeLength++;
     }
@@ -167,15 +318,15 @@ void printActivePoints(suffixTree st, activePoint ap){
     printf("activeLength: %d\n", ap.activeLength);
 }
 
-char isEndOfPath(suffixTree *st, int i){
-    node *n = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
+int isEndOfPath(suffixTree *st, int i){
+    node *n = st->ap.activeNode->children[Decode(st->str[st->ap.activeEdge])];
     char *input = st->str;
     if (diff(n)>=st->ap.activeLength){
-        return input[*(st->ap.activeNode->children[input[st->ap.activeEdge]]->start)+st->ap.activeLength];
+        return Decode(input[*(st->ap.activeNode->children[Decode(input[st->ap.activeEdge])]->start)+st->ap.activeLength]);
     }
     if (diff(n)+1==st->ap.activeLength){
-        if(n->children[input[i]]){
-            return input[i];
+        if(n->children[Decode(input[i])]){
+            return Decode(input[i]);
         }
     } else{
         st->ap.activeNode = n;
@@ -187,13 +338,17 @@ char isEndOfPath(suffixTree *st, int i){
     return 0;
 }
 
-void beginPhase(suffixTree *st, int i){
+void beginPhase(suffixTree *st, int i, int *numNodes, int *memFlag){
     // In each phase, 'remaining' and 'end' should be incremented
     st->remaining += 1;
     // Rule 1 extension
     st->end += 1;
     // printf("End: %d\n", st->end);
-    char c = st->str[i];
+    // char c = Decode(st->str[i]);
+    // printf("str: %c\n", st->str[i]);
+    // int dec = Decode(st->str[i]);
+    // printf("dec: %d\n", dec);
+    // printf("c: %c\n", c);
     // printf("Char: %c\n", c);
     // Handle suffixLinks
     node *lastCreatedInternalNode = NULL;
@@ -205,50 +360,65 @@ void beginPhase(suffixTree *st, int i){
 
             // Create a path if not
             // printf("1\n");
-            if (st->ap.activeNode->children[st->str[i]]==NULL){
+            if (st->ap.activeNode->children[Decode(st->str[i])]==NULL){
                 // printf("1a\n");
                 node *nn = newNode(i, &(st->end));
+                if (!nn){
+                    *memFlag = 1;
+                    break;
+                }
+                *numNodes = *numNodes+1;
                 // printf("nn\nstart: %d, end; %d\n", *(nn->start), *(nn->end));
                 // st->ap.activeNode->children[c] = nn;
-                st->root->children[st->str[i]] = nn;
+                st->root->children[Decode(st->str[i])] = nn;
                 st->remaining--;
             }
             else {
                 // Show stopper
                 // activeIndex becomes start index of the path that exists
                 // printf("1b\n");
-                st->ap.activeEdge = *(st->root->children[st->str[i]]->start);
+                st->ap.activeEdge = *(st->root->children[Decode(st->str[i])]->start);
                 st->ap.activeLength++;
                 break;
             }
         } else {
             // printf("Here\n");
-            char ch = isEndOfPath(st, i);
+            int ch = isEndOfPath(st, i);
             if(ch!=0){
                 // printf("2a\n");
-                if (ch==st->str[i]){
+                if (ch==Decode(st->str[i])){
                     // printf("eq\n");
                     if (lastCreatedInternalNode){
-                        lastCreatedInternalNode->suffixLink = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
+                        lastCreatedInternalNode->suffixLink = st->ap.activeNode->children[Decode(st->str[st->ap.activeEdge])];
                     }
                     walkDown(st, i);
                     break;
                 } else{
-                    node *n = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
+                    node *n = st->ap.activeNode->children[Decode(st->str[st->ap.activeEdge])];
                     int oldStart = *(n->start);
                     *(n->start) = oldStart + st->ap.activeLength;
 
                     node *new = newNode(oldStart, NULL);
+                    if (!new){
+                        *memFlag = 1;
+                        break;
+                    }
+                    *numNodes = *numNodes+1;
                     new->end = (int *) malloc(sizeof(int));
                     *(new->end) = oldStart+st->ap.activeLength-1;
                     // printf("neq\n");
 
                     node *newLeaf = newNode(i, &(st->end));
+                    if (!newLeaf){
+                        *memFlag = 1;
+                        break;
+                    }
+                    *numNodes = *numNodes+1;
 
-                    new->children[st->str[*(new->start)+st->ap.activeLength]] = n;
-                    new->children[st->str[i]] = newLeaf;
+                    new->children[Decode(st->str[*(new->start)+st->ap.activeLength])] = n;
+                    new->children[Decode(st->str[i])] = newLeaf;
                     new->suffixIndex = -1;
-                    st->ap.activeNode->children[st->str[*(new->start)]] = new;
+                    st->ap.activeNode->children[Decode(st->str[*(new->start)])] = new;
 
                     if (lastCreatedInternalNode){
                         lastCreatedInternalNode->suffixLink = new;
@@ -268,8 +438,13 @@ void beginPhase(suffixTree *st, int i){
                 // printf("2b\n");
                 // End of Path
                 // printf("End of path\n");
-                node *n = st->ap.activeNode->children[st->str[st->ap.activeEdge]];
-                n->children[st->str[i]] = newNode(i, &(st->end));
+                node *n = st->ap.activeNode->children[Decode(st->str[st->ap.activeEdge])];
+                n->children[Decode(st->str[i])] = newNode(i, &(st->end));
+                if (!n->children[Decode(st->str[i])]){
+                    *memFlag = 1;
+                    break;
+                }
+                *numNodes = *numNodes+1;
                 if (lastCreatedInternalNode){
                     lastCreatedInternalNode->suffixLink = n;
                 }
@@ -304,9 +479,9 @@ void Display(node *t, char *str){
         int flag = 0;
         for (int i=0; i<MAX_CHAR; i++){
             if (!t->children[i]) flag++;
-            Display(t->children[i], str);
+            // Display(t->children[i], str);
         }
-        if (flag==256){
+        if (flag==MAX_CHAR){
             count++;
             printf("Leaf. Suffix index: %d\n", t->suffixIndex);
         }
@@ -379,7 +554,7 @@ void DFSPath(node *n, char *prevSuffix, char *text){
     strcat(newSuffix, currSuffix);
     if (*(n->end)!=-1){
         if (isLeaf(n)){
-            printf("%s\n", newSuffix);
+            // printf("%s\n", newSuffix);
             return;
         }
     } else{

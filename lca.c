@@ -44,7 +44,7 @@ void EulerTour(node *n, lcaElem *lcaArr, int size, int *pos, int depth, int visi
     // printf("pos: %d | depth: %d | visited: %d\n", *pos, depth, visited);
     for (int i=0; i<MAX_CHAR; i++){
         if (n->children[i]){
-            printf("I'm here\n");
+            // printf("I'm here\n");
             EulerTour(n->children[i], lcaArr, size, pos, depth+*(n->children[i]->end)-*(n->children[i]->start)+1, ++visited, visit, R, rpos);
             lcaArr[*pos].n = n;
             lcaArr[*pos].depth = depth;
@@ -128,14 +128,14 @@ long long **lca(suffixTree *st, long long **spt){
     int *R = (int *) malloc(sizeof(int)*SIZE);
     int pos = 0;
     int rpos = 0;
-    printf("Here Euler\n");
+    // printf("Here Euler\n");
     EulerTour(st->root, lcaArr, SIZE, &pos, 0, 0, visited, R, &rpos);
-    DisplayLCAArr(lcaArr, pos);
-    printf("\n");
-    for (int i=0; i<rpos; i++){
-        printf("%d ", R[i]);
-    }
-    printf("\n");
+    // DisplayLCAArr(lcaArr, pos);
+    // printf("\n");
+    // for (int i=0; i<rpos; i++){
+    //     printf("%d ", R[i]);
+    // }
+    // printf("\n");
     // int *unique = (int *) calloc(42, sizeof(int));
 
     if (!spt){
@@ -235,7 +235,7 @@ long long **lca(suffixTree *st, long long **spt){
             }
         }
     }
-    printf("\n");
+    // printf("\n");
 
     int flag = 0;
 
@@ -261,7 +261,7 @@ long long **lca(suffixTree *st, long long **spt){
     int c = 0;
     while (!isEmpty(&s)){
         elem *e = top(&s);
-        printf("start: %d | maxLen: %d\n", e->start, s.maxLen);
+        // printf("start: %d | maxLen: %d\n", e->start, s.maxLen);
         for (int i=e->start; i<e->start+s.maxLen; i++){
             printf("%c", st->str[i]);
         }
@@ -269,8 +269,8 @@ long long **lca(suffixTree *st, long long **spt){
         printf("\n");
         c++;
     }
-    printf("c: %d\n", c);
-    printf("rpos: %d\n", rpos);
+    // printf("c: %d\n", c);
+    // printf("rpos: %d\n", rpos);
     return spt;
 }
 
@@ -422,12 +422,12 @@ long long **kMisMatch(suffixTree *st, int k, int patLen, long long **spt){
     int rpos = 0;
     EulerTour(st->root, lcaArr, SIZE, &pos, 0, 0, visited, R, &rpos);
     // printf("Here\n");
-    DisplayLCAArr(lcaArr, pos);
-    printf("\n");
-    for (int i=0; i<rpos; i++){
-        printf("%d ", R[i]);
-    }
-    printf("\n");
+    // DisplayLCAArr(lcaArr, pos);
+    // printf("\n");
+    // for (int i=0; i<rpos; i++){
+    //     printf("%d ", R[i]);
+    // }
+    // printf("\n");
 
     if (!spt){
         spt = SparseTable(lcaArr, pos);
@@ -441,8 +441,10 @@ long long **kMisMatch(suffixTree *st, int k, int patLen, long long **spt){
     int mainL = strL-patLen-2;
     int foundFlag = 0;
     int prevMin = 0;
+    int length = 0;
     for (int i=0; i<mainL && !foundFlag; i++){
         sec = 0;
+        length = 0;
         min = findMin(lcaArr, R, i, mainL+1, spt);
         // printf("i: %d | p: %d\n", i, mainL+1);
         // printf("min: %d\n", min);
@@ -452,20 +454,30 @@ long long **kMisMatch(suffixTree *st, int k, int patLen, long long **spt){
         }
         if (min==patLen){
             printf("Found at %d\n", i);
+            for (int x=i; x<i+patLen; x++){
+                printf("%c", st->str[x]);
+            }
+            printf("\n");
             continue;
         }
         // Partial match
         p = min;
         sec = i+p;
         prevMin = min;
+        length+=min;
         // printf("p: %d | sec: %d\n", min, sec);
         for (int j=0; j<k+1; j++){
             min = findMin(lcaArr, R, sec, mainL+p+1, spt);
             // printf("i: %d | p: %d\n", sec, mainL+p+1);
             // printf("min: %d\n", min);
             p+=min;
+            length+=min;
             if (p==patLen){
                 printf("Found at %d\n", i);
+                for (int x=i; x<=i+length; x++){
+                    printf("%c", st->str[x]);
+                }
+                printf("\n");
                 // p = prevMin;
                 // foundFlag = 1;
                 break;

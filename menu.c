@@ -5,36 +5,19 @@
 #include "dnaUtilities.h"
 #include "lca.h"
 
-void check(node *root, char *str){
-    for (int i=0; i<256; i++){
-        if (root->children[i]){
-            printf("parent: %d %d\n", *(root->start), *(root->end));
-            // for (int j=*(root->start); j<=*(root->end); j++){
-            //     printf("%c", str[j]);
-            // }
-            // printf("\n");
-            if (isLeaf(root->children[i])) printf("%d\n", root->children[i]->suffixIndex);
-            printf("%c\n", i);
-            printf("%d %d\n", *(root->children[i]->start), *(root->children[i]->end));
-            check(root->children[i], str);
-        }
-    }
-}
-
 void Menu(){
-    printf("DNA Sequence Menu\n");
+    printf("\nGeneral Menu\n");
     printf("-----------------\n");
     int i = 0;
     printf("%d. Exit\n", i++);
-    printf("%d. Load a (new) sequence from text file\n", i++);
-    printf("%d. Check for a substring in sequence\n", i++);
-    printf("%d. Longest Repeated Substring in sequence\n", i++);
-    printf("%d. Longest Normal Palindromic Substring in sequence\n", i++);
-    printf("%d. Longest Complement Palindrome Substring in sequence\n", i++);
-    printf("%d. Approximate Sequence Matching\n", i++);
-    printf("%d. Longest Common Substring between 2 sequences\n", i++);
-    printf("%d. Count occurrences of a substring in sequence\n", i++);
-    printf("%d. Count occurrence of given STR in sequence\n", i++);
+    printf("%d. Load a (new) word from text file\n", i++);
+    printf("%d. Check for a substring in word\n", i++);
+    printf("%d. Longest Repeated Substring in word\n", i++);
+    printf("%d. Longest Normal Palindromic Substring in word\n", i++);
+    printf("%d. Inexact Matching\n", i++);
+    printf("%d. Longest Common Substring between 2 words\n", i++);
+    printf("%d. Count occurrences of a substring in word\n", i++);
+    printf("%d. Find longest continuous repeat of given pattern in word\n", i++);
     printf("\n");
 }
 
@@ -61,6 +44,7 @@ int main(){
         printf("Enter option number: ");
         scanf("%d", &op_num);
         fflush(stdin);
+        printf("\n");
         switch(op_num){
             case 0: loop = 0;
                 break;

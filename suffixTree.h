@@ -1,11 +1,11 @@
 // The maximum number of children a node could have
 // 256 ASCII characters
 // Could we do something better instead?
-#define MAX_CHAR 256
+// #define MAX_CHAR 256
 
 typedef struct node{
     // Has an array representing possibly 256 ASCII characters
-    struct node *children[MAX_CHAR];
+    struct node **children;
 
     // Every node has a start and end index of edge from its parent
     int *start;
@@ -42,10 +42,13 @@ typedef struct suffixTree{
 
 // Serialization and Deserialization of suffix trees
 
-void initSuffixTree(suffixTree *st);
+void initSuffixTree(suffixTree *st, int maxChar, int status);
+int freeSuffixTree(node *n, int *count);
+int Load(suffixTree *st, int loaded);
+int LoadPat(char **pat);
 void preprocessString(suffixTree *st, char *str);
-void buildSuffixTree(suffixTree *st);
+int buildSuffixTree(suffixTree *st);
 void Display(node *t, char *str);
-int checkForSubString(suffixTree st, char *pat);
+// int checkForSubString(suffixTree st, char *pat);
 int isLeaf(node *n);
 void printRoot2Leaf(suffixTree *st);
