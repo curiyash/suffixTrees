@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "suffixTree.h"
-#include "utilities.h"
+#include "dnaSuffixTree.h"
+#include "dnaUtilities.h"
 #include "queue.h"
 
 int match(char *pat, int posStart, int start, int end, char *str, int *index){

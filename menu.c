@@ -11,6 +11,7 @@ void check(node *root, char *str){
             //     printf("%c", str[j]);
             // }
             // printf("\n");
+            if (isLeaf(root->children[i])) printf("%d\n", root->children[i]->suffixIndex);
             printf("%c\n", i);
             printf("%d %d\n", *(root->children[i]->start), *(root->children[i]->end));
             check(root->children[i], str);
@@ -31,7 +32,7 @@ int main(int argc, char *argv[]){
     // printf("%p %s\n", arr, arr[0]);
     // printf("---\n");
     // printf("Here\n");
-    char *str = "AAGGTAAGTTTAGAATATAAAAGGTGAGTTAAATAGAATAGGTTAAAATTAAAGGAGATCAGATCAGATCAGATCTATCTATCTATCTATCTATCAGAAAAGAGTAAATAGTTAAAGAGTAAGATATTGAATTAATGGAAAATATTGTTGGGGAAAGGAGGGATAGAAGG";
+    char *str = "AGTC";
     preprocessString(&st, str);
     printf("%s\n", st.str);
     buildSuffixTree(&st);
@@ -49,8 +50,8 @@ int main(int argc, char *argv[]){
     // // printf("count: %d\n", count);
     printf("longest repeated substring: %d\n", longestRepeatedSubstring(&st));
     // printf("longest common substring: %d\n", longestCommonSubstring(&st));
-    // // printRoot2Leaf(&st);
+    // printRoot2Leaf(&st);
 
-    // // check(st.root, st.str);
+    // check(st.root, st.str);
     // printf("\n");
 }

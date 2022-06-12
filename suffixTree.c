@@ -3,7 +3,7 @@
 #include "suffixTree.h"
 #include <string.h>
 
-// Define a unique char which avoid implicit suffix trees
+// Define a unique char which avoids implicit suffix trees
 #define UNIQUE_CHAR '$'
 
 // Functions
@@ -54,7 +54,7 @@ void setSuffixIndexByDFS(node *n, int labelHeight, char *str)
         if (n->children[i] != NULL)
         {
             if (leaf == 1 && *(n->start) != -1)
-                // printf(" [%d]\n", n->suffixIndex);
+                printf(" [%d]\n", n->suffixIndex);
  
             //Current node is not a leaf as it has outgoing
             //edges from it.
@@ -75,7 +75,7 @@ void setSuffixIndexByDFS(node *n, int labelHeight, char *str)
             }
         }
         n->suffixIndex = strlen(str) - labelHeight;
-        // printf(" %d\n", n->suffixIndex);
+        printf(" %d\n", n->suffixIndex);
     }
 }
 
@@ -121,7 +121,7 @@ node *newNode(int start, int *end){
     // Input:
         // suffixTree *st: pointer to a suffixTree
     // Expected outcome:
-        // Build the goddamn suffixTree for its string
+        // Build the suffixTree for its string
 void buildSuffixTree(suffixTree *st){
     st->root = newNode(-1, NULL);
     st->root->end = (int *) malloc(sizeof(int));

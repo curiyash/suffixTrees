@@ -5,7 +5,6 @@
 
 typedef struct node{
     // Has an array representing possibly 256 ASCII characters
-    // Let's start with 26 first
     struct node *children[MAX_CHAR];
 
     // Every node has a start and end index of edge from its parent
@@ -33,7 +32,7 @@ typedef struct suffixTree{
     node *root;
     // Contains the string which it has created
     char *str;
-    // Includes active points
+    // Includes active point information
     activePoint ap;
     // Include count for pending suffixes
     int remaining;
