@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
-#include "dnaSuffixTree.h"
-#include "dnaUtilities.h"
+#include "suffixTree.h"
+#include "utilities.h"
 #include "lca.h"
 
 void Menu(){

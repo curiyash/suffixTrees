@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "dnaSuffixTree.h"
+#include "suffixTree.h"
 #include <string.h>
 
 // Define a unique char which avoids implicit suffix trees
