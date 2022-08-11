@@ -298,10 +298,10 @@ int countRepeats(suffixTree *st, char *pat, node *curr, int *count){
     int flagForCheck = 0;
     int readFrom = 0;
     while (i<MAX_CHAR && index<len){
-        if (i==0){
-            // printf("Yes\n");
-            // printf("%d %d %d\n", *(curr->start), *(curr->end), index);
-        }
+        // if (i==0){
+        //     // printf("Yes\n");
+        //     // printf("%d %d %d\n", *(curr->start), *(curr->end), index);
+        // }
         if (curr->children[i]){
             // If pat doesn't match child label
             // printf("Checking: %d %d\n", *(curr->children[i]->start), *(curr->children[i]->end));
@@ -311,9 +311,13 @@ int countRepeats(suffixTree *st, char *pat, node *curr, int *count){
                 status = matchForRepeats(pat, index, readFrom, *(curr->children[i]->end), st->str, &update, &readFrom);
             else
                 status = matchForRepeats(pat, index, *(curr->children[i]->start), *(curr->children[i]->end), st->str, &update, &readFrom);
-            if (readFrom==-1) flagForCheck = 0;
-            else flagForCheck = 1;
-            printf("status: %d %d\n", status, update);
+            if (readFrom==-1){
+                flagForCheck = 0;
+            }
+            else{
+                flagForCheck = 1;
+            }
+            // printf("status: %d %d\n", status, update);
             finalStatus = status;
             if (status==-1) {
                 i++;
@@ -329,9 +333,9 @@ int countRepeats(suffixTree *st, char *pat, node *curr, int *count){
                 if (isLeaf(curr)){
                     return *count;
                 }
-                printf("##############################################\n");
+                // printf("##############################################\n");
                 if (flagForCheck){
-                    printf("Curr remains\n");
+                    // printf("Curr remains\n");
                     printf("readFrom: %d | end: %d\n", readFrom, *(curr->children[i]->end));
                     index = *(curr->children[i]->end)-readFrom;
                     printf("index: %d\n", index);

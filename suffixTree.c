@@ -56,7 +56,7 @@ int Load(suffixTree *st, int loaded){
     FILE *fp = fopen(filename, "r");
     // printf("%s\n", filename);
     if (!fp){
-        printf("Error in opening a file. Possibly look at...\n1. If you have entered correct path\n2. If the path actually exists\n");
+        printf("Error in opening a file. Possibly look at...\n1. If you have entered correct path\n2. If the path actually exists\n3. Your path doesn't contain \\ as separator\n");
         loaded = 0;
         return 0;
     }
@@ -70,6 +70,7 @@ int Load(suffixTree *st, int loaded){
     char *str = (char *) malloc(sizeof(char)*(count+1));
     rewind(fp);
     fscanf(fp, "%[^\n]%*c", str);
+    fclose(fp);
     // printf("%s\n", str);
     preprocessString(st, str);
     numNodes = buildSuffixTree(st);
@@ -394,9 +395,13 @@ void beginPhase(suffixTree *st, int i, int *numNodes, int *memFlag){
                     walkDown(st, i);
                     break;
                 } else{
+                    // printf("2c\n");
+                    // printActivePoints(*st, st->ap);
                     node *n = st->ap.activeNode->children[Decode(st->str[st->ap.activeEdge])];
                     int oldStart = *(n->start);
                     *(n->start) = oldStart + st->ap.activeLength;
+
+                    // printf("n: %d %d\n", *(n->start), n->end?*(n->end):0);
 
                     node *new = newNode(oldStart, NULL);
                     if (!new){
@@ -406,6 +411,7 @@ void beginPhase(suffixTree *st, int i, int *numNodes, int *memFlag){
                     *numNodes = *numNodes+1;
                     new->end = (int *) malloc(sizeof(int));
                     *(new->end) = oldStart+st->ap.activeLength-1;
+                    // printf("new: %d %d\n", *(new->start), new->end?*(new->end):0);
                     // printf("neq\n");
 
                     node *newLeaf = newNode(i, &(st->end));
@@ -413,6 +419,7 @@ void beginPhase(suffixTree *st, int i, int *numNodes, int *memFlag){
                         *memFlag = 1;
                         break;
                     }
+                    // printf("Leaf: %d %d\n", *(newLeaf->start), newLeaf->end?*(newLeaf->end):0);
                     *numNodes = *numNodes+1;
 
                     new->children[Decode(st->str[*(new->start)+st->ap.activeLength])] = n;

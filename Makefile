@@ -24,3 +24,5 @@ queue.o: queue.h queue.c
 	gcc -c queue.c -o queue.o
 menu.o: menu.c suffixTree.h
 	gcc -c menu.c -o menu.o
+clean:
+	rm *.o

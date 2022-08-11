@@ -89,15 +89,7 @@ int main(){
                 printf("freeNodes: %d\n", freeNodes);
                 freeNodes = 0;
                 break;
-            case 5: // Longest Complement Palindromic Substring
-                initSuffixTree(&pal, 256, 0);
-                makeComplementReverse(&pal, st.str);
-                buildSuffixTree(&pal);
-                spt = lca(&pal, spt);
-                printf("freeNodes: %d\n", freeNodes);
-                freeNodes = 0;
-                break;
-            case 6: // Approximate Sequence Matching
+            case 5: // Approximate Sequence Matching
                 printf("Load pattern from a textfile or input in the command line\n");
                 if (loadedPat){
                     printf("Pattern is already loaded - %s. Use the same pattern? 1/0\n", pat);
@@ -137,7 +129,7 @@ int main(){
                 spt = kMisMatch(&pal, k, patLen, spt);
                 freeSuffixTree(pal.root, &freeNodes);
                 break;
-            case 7: // Longest Common Substring
+            case 6: // Longest Common Substring
                 initSuffixTree(&pal, 256, 0);
                 status = LoadPat(&pat);
                 if (status){
@@ -150,7 +142,7 @@ int main(){
                 longestCommonSubstring(&pal);
                 freeSuffixTree(pal.root, &freeNodes);
                 break;
-            case 8: // Count occurrences
+            case 7: // Count occurrences
                 status = LoadPat(&pat);
                 if (status){
                     printf("An error occurred\n");
@@ -158,7 +150,7 @@ int main(){
                 }
                 printf("Count: %d\n", countOccurences(&st, pat));
                 break;
-            case 9: // Count occurrence of given STR
+            case 8: // Count occurrence of given STR
                 status = LoadPat(&pat);
                 if (status){
                     printf("An error occurred\n");

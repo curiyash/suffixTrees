@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
-#include "dnaSuffixTree.h"
+#include "suffixTree.h"
 #include "lca.h"
-#include "dnaUtilities.h"
+#include "utilities.h"
 #include "stack.h"
 
 int SIZE = 50000;
@@ -103,7 +103,7 @@ int findMin(lcaElem *lcaArr, int *R, int u, int v, long long **st){
     // Sparse Table O(logn) approach
     // printf("start: %d | end: %d\n", start, end);
     int j = logtwo(end-start+1);
-    // printf("j: %d | 1<<j: %d\n", j, 1<<j);
+    // // printf("j: %d | 1<<j: %d\n", j, 1<<j);
     min = stMin(st[start][j], st[end-(1<<j)+1][j]);
 
     // O(n) approach
@@ -289,7 +289,6 @@ long long **lca(suffixTree *st, long long **spt){
 //         }
 //     }
 // }
-
 void preprocessStringForLPS(suffixTree *st, char *str){
     int len = strlen(str)-1;
     char *temp = (char *) malloc(sizeof(char)*(len*2+3));
@@ -421,9 +420,9 @@ long long **kMisMatch(suffixTree *st, int k, int patLen, long long **spt){
     int pos = 0;
     int rpos = 0;
     EulerTour(st->root, lcaArr, SIZE, &pos, 0, 0, visited, R, &rpos);
-    // printf("Here\n");
-    // DisplayLCAArr(lcaArr, pos);
-    // printf("\n");
+    printf("Here\n");
+    DisplayLCAArr(lcaArr, pos);
+    printf("\n");
     // for (int i=0; i<rpos; i++){
     //     printf("%d ", R[i]);
     // }
@@ -438,22 +437,27 @@ long long **kMisMatch(suffixTree *st, int k, int patLen, long long **spt){
     int min = 0;
     int p = 0;
     int sec = 0;
-    int mainL = strL-patLen-2;
+    int mainL = strL-patLen-1;
+    printf("strL: %d | patL: %d | mainL: %d\n", strL, patLen, mainL);
     int foundFlag = 0;
     int prevMin = 0;
     int length = 0;
     for (int i=0; i<mainL && !foundFlag; i++){
+        p = 0;
         sec = 0;
         length = 0;
-        min = findMin(lcaArr, R, i, mainL+1, spt);
-        // printf("i: %d | p: %d\n", i, mainL+1);
+        min = findMin(lcaArr, R, i, mainL, spt);
+        printf("i: %d | p: %d\n", i, mainL);
+        printf("i: %c | p: %c\n", st->str[i], st->str[mainL]);
+        // printf("i: %d\n", i);
+        printf("min: %d\n", min);
         // printf("min: %d\n", min);
         if (min==0){
-            // printf("Not found at %d\n", i);
+            printf("Not found at %d\n", i);
             continue;
         }
         if (min==patLen){
-            printf("Found at %d\n", i);
+            printf("Here. Found at %d\n", i);
             for (int x=i; x<i+patLen; x++){
                 printf("%c", st->str[x]);
             }
@@ -466,24 +470,26 @@ long long **kMisMatch(suffixTree *st, int k, int patLen, long long **spt){
         prevMin = min;
         length+=min;
         // printf("p: %d | sec: %d\n", min, sec);
-        for (int j=0; j<k+1; j++){
-            min = findMin(lcaArr, R, sec, mainL+p+1, spt);
-            // printf("i: %d | p: %d\n", sec, mainL+p+1);
+        for (int j=0; j<k+1 && sec<mainL; j++){
+            min = findMin(lcaArr, R, sec, mainL+p, spt);
+            // printf("i: %d | p: %d | p: %d\n", sec, mainL+p+1, p);
             // printf("min: %d\n", min);
             p+=min;
             length+=min;
             if (p==patLen){
                 printf("Found at %d\n", i);
-                for (int x=i; x<=i+length; x++){
+                for (int x=i; x<=sec; x++){
                     printf("%c", st->str[x]);
                 }
                 printf("\n");
                 // p = prevMin;
-                // foundFlag = 1;
+                foundFlag = 1;
                 break;
             }
-            sec+=p;
+            sec+=1;
+            // printf("sec: %d\n", sec);
         }
+        printf("\n");
         // printf("Not found at %d\n", i);
     }
     // printf("Not found\n");
@@ -503,7 +509,9 @@ void preprocessStringForKMisMatch(suffixTree *st, char *str, char *pat){
         temp[i] = pat[i-len-1];
     }
     temp[len+patLen+1] = '$';
-    st->str = (char *) malloc(sizeof(char)*(len*2+3));
+    printf("TotalLen: %d\n", len+patLen+2);
+    temp[len+patLen+2] = '\0';
+    st->str = (char *) malloc(sizeof(char)*(len+patLen+3));
     strcpy(st->str, temp);
     free(temp);
 }

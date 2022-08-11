@@ -94,6 +94,7 @@ int main(){
                 initSuffixTree(&pal, 7, 1);
                 makeComplementReverse(&pal, st.str);
                 buildSuffixTree(&pal);
+                // printf("%s\n", pal.str);
                 spt = lca(&pal, spt);
                 printf("freeNodes: %d\n", freeNodes);
                 freeNodes = 0;
